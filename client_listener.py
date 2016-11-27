@@ -28,6 +28,6 @@ def run_client_listener(task_queue, host, port):
         received = Serializer.deserialize(c.recv(1024))
         task = ["CLIENT", received]
         print "CLIENT_LISTENER: %s" %task
-        task_queue.put(task)
+        task_queue.put((5,task)) # TODO solidify task priority
         c.close()                # Close the connection
         print "CLIENT_LISTENER: CONNECTION CLOSED"

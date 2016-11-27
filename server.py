@@ -29,7 +29,7 @@ class Server(object):
         self.cli_listen_port = cli_listen_port
 
         # make the task queue
-        self.task_queue = Queue.Queue()
+        self.task_queue = Queue.PriorityQueue()
 
     # ==========================================================================
     # Starts the worker threads
@@ -54,7 +54,7 @@ class Server(object):
     def run(self):
         while True:
             if not self.task_queue.empty():
-                task = self.task_queue.get()
+                priority, task = self.task_queue.get()
                 print "MAIN_WORKER: COMPLETING TASK:", task
 
 # ==============================================================================
