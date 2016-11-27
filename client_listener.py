@@ -25,11 +25,7 @@ def run_client_listener(task_queue, host, port):
         time.sleep(.1)
         c, addr = s.accept()    # Establish connection with client.
         print "CLIENT_LISTENER: GOT CONNECTION FROM", addr
-
-        # *** use serializer.deserialize() when the real client is implemented ***
         received = serializer.deserialize(c.recv(1024))
-        # received = c.recv(1024)
-
         task = ["CLIENT", received]
         print "CLIENT_LISTENER: %s" %task
         task_queue.put(task)
