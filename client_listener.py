@@ -10,7 +10,7 @@ import time
 import Queue
 import socket
 
-from serializer import *
+from serializer import Serializer
 
 # ==============================================================================
 # Takes input from the command line client and hands it off to the main thread.
@@ -25,7 +25,7 @@ def run_client_listener(task_queue, host, port):
         time.sleep(.1)
         c, addr = s.accept()    # Establish connection with client.
         print "CLIENT_LISTENER: GOT CONNECTION FROM", addr
-        received = serializer.deserialize(c.recv(1024))
+        received = Serializer.deserialize(c.recv(1024))
         task = ["CLIENT", received]
         print "CLIENT_LISTENER: %s" %task
         task_queue.put(task)

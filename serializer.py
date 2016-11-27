@@ -10,7 +10,7 @@ import base64
 
 # ==============================================================================
 #
-class serializer(object):
+class Serializer(object):
     """
     Serialization/Deserialization for DS&A Project 1
 

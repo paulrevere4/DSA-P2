@@ -11,7 +11,7 @@ import Queue
 from threading import Thread
 
 from client_listener import *
-from serializer import *
+from serializer import Serializer
 
 # ==============================================================================
 # Checks the task_queue for tasks and completes them

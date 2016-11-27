@@ -13,7 +13,7 @@ import sys
 import time
 import socket
 
-from serializer import *
+from serializer import Serializer
 
 # ==============================================================================
 # Takes input and sends it to the specified server
@@ -25,7 +25,7 @@ def run(host, port):
         time.sleep(.1)
         cmd = raw_input("Input: ")
         print "CLIENT: Read '%s' from command line" %cmd
-        packed = serializer.serialize([cmd])
+        packed = Serializer.serialize([cmd])
         s = socket.socket()
         s.connect((host, port))
         s.send(packed)
