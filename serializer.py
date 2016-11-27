@@ -9,8 +9,7 @@ serializer.py
 import base64
 
 # ==============================================================================
-
-# ==============================================================================
+#
 class serializer(object):
     """
     Serialization/Deserialization for DS&A Project 1
@@ -19,8 +18,8 @@ class serializer(object):
     deserialize( string )
     """
 
-    # serialize( list(strings) ) ===============================================
     # ==========================================================================
+    # serialize( list(strings) )
     # Takes list of strings and returns a base64 string of them packed together
     #   to be sent over tcp
     #
@@ -33,8 +32,8 @@ class serializer(object):
         packed = '-'.join(serialized)
         return packed
 
-    # deserialize( string ) ====================================================
     # ==========================================================================
+    # deserialize( string )
     # Takes in a packed base64 string and turns it into a list of strings
     #
     @staticmethod
@@ -45,6 +44,8 @@ class serializer(object):
             deserialized.append(data)
         return deserialized
 
+# ==============================================================================
+#
 if __name__ == "__main__":
     s1 = "String A"
     s2 = "String B"
