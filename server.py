@@ -8,7 +8,7 @@ server.py
 
 import sys
 import Queue
-from threading import Thread
+import threading
 
 from client_listener import *
 from leader_listener import *
@@ -25,8 +25,10 @@ class Server(object):
     # Setup member variables
     #
     def __init__(self, server_num, server_locations):
+        # set the server num
         self.server_num = server_num
 
+        # set the server locations
         self.server_locations = server_locations
 
         # Gets host IP from server_locations
@@ -37,11 +39,19 @@ class Server(object):
         self.leader_listen_port = server_locations[server_num][2]
         self.cli_listen_port = server_locations[server_num][3]
 
+        # set the flags for running the leader leader listener threads
+        # these are queues, if they're empty the thread won't run
+        # if they have a something in them the thread will run
+        # its weird I know...
+        self.run_leader_thread = Queue.Queue()
+        self.run_leader_listener_thread = Queue.Queue()
+
         # make the task queue
         self.task_queue = Queue.PriorityQueue()
 
         # Temporary declaration of leader
-        self.is_leader = (server_num == 0)
+        self.is_leader = (server_num == 0) # TODO remove hard coded leader when we can define/elect one
+        print "self.is_leader:", self.is_leader
 
         # Initializes empty file system
         self.file_system = {}
@@ -53,34 +63,50 @@ class Server(object):
     # Starts the worker threads
     #
     def start_threads(self):
+        # Suppressing prints in leader to make debugging easier
+        leader_printing = True
+        if self.is_leader:
+            leader_printing = False
+
         # make the threads
-        client_listener_thread = Thread( \
+        client_listener_thread = threading.Thread( \
             target=run_client_listener, \
             args=(self.task_queue, self.host, self.cli_listen_port))
 
-        # Suppressing prints in leader to make debugging easier
-        leader_printing = True
-        if self.server_num == 0: leader_printing = False
-
-        leader_listener_thread = Thread( \
+        leader_listener_thread = threading.Thread( \
             target=run_leader_listener, \
-            args=(self.task_queue, self.host, self.leader_listen_port, leader_printing))
+            args=(self.task_queue, self.host, self.leader_listen_port, self.run_leader_listener_thread, leader_printing))
+
+        leader_thread = threading.Thread( \
+            target=run_leader, \
+            args=(self.task_queue, self.server_locations, self.run_leader_thread))
 
         # set threads as daemons so we can kill them
         client_listener_thread.daemon = True
         leader_listener_thread.daemon = True
+        leader_thread.daemon = True
 
         # start threads
         client_listener_thread.start()
         leader_listener_thread.start()
+        leader_thread.start()
 
-        if self.server_num == 0:
-            time.sleep(.2)
-            leader_thread = Thread( \
-                target=run_leader, \
-                args=(self.task_queue, self.server_locations))
-            leader_thread.daemon = True
-            leader_thread.start()
+        if self.is_leader:
+            self.run_leader_listener_thread.put(True)
+            print "I AM THE LEADER"
+            time.sleep(.5)
+            self.run_leader_thread.put(True)
+        else:
+            print "I AM NOT THE LEADER"
+            self.run_leader_listener_thread.put(True)
+
+        time.sleep(5)
+        print "STOPPING LEADER LISTENER (if running)"
+        if not self.run_leader_listener_thread.empty():
+            self.run_leader_listener_thread.get()
+        print "STOPPING LEADER (if running)"
+        if not self.run_leader_thread.empty():
+            self.run_leader_thread.get()
 
 
     # ==========================================================================
