@@ -47,7 +47,6 @@ def run(host, port):
         time.sleep(.1)
         cmd = raw_input("Input: ")
         print "CLIENT: Read '%s' from command line" %cmd
-
         if not check_cmd(cmd):
             print "CLIENT: ERROR: INVALID COMMAND '%s'" %cmd
         else:
