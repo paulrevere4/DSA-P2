@@ -31,6 +31,15 @@ class Server(object):
         # make the task queue
         self.task_queue = Queue.PriorityQueue()
 
+        # Temporary declaration of leader
+        self.is_leader = (server_num == 0)
+
+        # Initializes empty file system
+        self.file_system = {}
+
+        # Initializes empty transaction history
+        self.transaction_histoy = []
+
     # ==========================================================================
     # Starts the worker threads
     #
