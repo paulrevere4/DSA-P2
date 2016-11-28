@@ -22,11 +22,13 @@ class Server(object):
     # ==========================================================================
     # Setup member variables
     #
-    def __init__(self, server_num, host, cli_listen_port):
+    def __init__(self, server_num, server_locations):
         self.server_num = server_num
 
-        self.host = host
-        self.cli_listen_port = cli_listen_port
+        self.server_locations = server_locations
+
+        self.host = server_locations[server_num][0]
+        self.cli_listen_port = server_locations[server_num][1]
 
         # make the task queue
         self.task_queue = Queue.PriorityQueue()
@@ -66,6 +68,19 @@ class Server(object):
                 priority, task = self.task_queue.get()
                 print "MAIN_WORKER: COMPLETING TASK:", task
 
+
+# ==============================================================================
+# Processes a config file from file_location, returns map of server locations
+#
+def process_config(file_location):
+    config_map = {}
+    f = open(file_location, "r")
+    for line in f:
+        words = line.split()
+        config_map[int(words[0])] = (words[1], int(words[2]))
+
+    return config_map
+
 # ==============================================================================
 #
 if __name__ == "__main__":
@@ -73,14 +88,14 @@ if __name__ == "__main__":
     # usage prompt if wrong number of args given
     if len(sys.argv) != 3:
         print   "[!] USAGE:\n" \
-                "    $ python server.py <host> <cli-listen-port>"
+                "    $ python server.py <int server_num> <config file path>"
         exit(1)
 
-    # setup our script arguments
-    host = str(sys.argv[1])
-    cli_listen_port = int(sys.argv[2])
+    config_map = process_config(sys.argv[2])
+    print config_map
+    server_num = int(sys.argv[1])
 
     # setup server object and run
-    s = Server(0, host, cli_listen_port)
+    s = Server(server_num, config_map)
     s.start_threads()
     s.run()
