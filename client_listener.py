@@ -24,10 +24,11 @@ def run_client_listener(task_queue, host, port):
     while True:
         time.sleep(.1)
         c, addr = s.accept()    # Establish connection with client.
-        print "CLIENT_LISTENER: GOT CONNECTION FROM", addr
-        received = Serializer.deserialize(c.recv(1024))
-        task = ["CLIENT", received]
-        print "CLIENT_LISTENER: %s" %task
-        task_queue.put((5,task)) # TODO solidify task priority
-        c.close()                # Close the connection
-        print "CLIENT_LISTENER: CONNECTION CLOSED"
+        while True:
+            print "CLIENT_LISTENER: GOT CONNECTION FROM", addr
+            received = Serializer.deserialize(c.recv(1024))
+            task = ["CLIENT", received]
+            print "CLIENT_LISTENER: %s" %task
+            task_queue.put((5,task)) # TODO solidify task priority
+            # c.close()                # Close the connection
+            # print "CLIENT_LISTENER: CONNECTION CLOSED"

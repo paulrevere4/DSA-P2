@@ -21,13 +21,13 @@ from serializer import Serializer
 #   - Implement actual command parsing/error checks
 #
 def run(host, port):
+    s = socket.socket()
+    s.connect((host, port))
     while True:
         time.sleep(.1)
         cmd = raw_input("Input: ")
         print "CLIENT: Read '%s' from command line" %cmd
         packed = Serializer.serialize([cmd])
-        s = socket.socket()
-        s.connect((host, port))
         s.send(packed)
         print "CLIENT: Sent '%s' as to server at (host=%s, port=%d) as '%s'" %(cmd, host, port, packed)
 
