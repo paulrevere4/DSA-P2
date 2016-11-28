@@ -16,7 +16,10 @@ from serializer import Serializer
 # Takes input from the command line client and hands it off to the main thread.
 # *** Does not listen for input from other servers ***
 #
-def run_client_listener(task_queue, host, port):
+def run_client_listener(server):
+    task_queue = server.task_queue
+    host = server.host
+    port = server.cli_listen_port
     s = socket.socket()         # Create a socket object
     s.bind((host, port))        # Bind to the port
     s.listen(5)                 # Now wait for client connection.

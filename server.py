@@ -71,15 +71,15 @@ class Server(object):
         # make the threads
         client_listener_thread = threading.Thread( \
             target=run_client_listener, \
-            args=(self.task_queue, self.host, self.cli_listen_port))
+            args=(self,))
 
         leader_listener_thread = threading.Thread( \
             target=run_leader_listener, \
-            args=(self.task_queue, self.host, self.leader_listen_port, self.run_leader_listener_thread, leader_printing))
+            args=(self, leader_printing))
 
         leader_thread = threading.Thread( \
             target=run_leader, \
-            args=(self.task_queue, self.server_locations, self.run_leader_thread))
+            args=(self,))
 
         # set threads as daemons so we can kill them
         client_listener_thread.daemon = True
@@ -100,13 +100,13 @@ class Server(object):
             print "I AM NOT THE LEADER"
             self.run_leader_listener_thread.put(True)
 
-        time.sleep(5)
-        print "STOPPING LEADER LISTENER (if running)"
-        if not self.run_leader_listener_thread.empty():
-            self.run_leader_listener_thread.get()
-        print "STOPPING LEADER (if running)"
-        if not self.run_leader_thread.empty():
-            self.run_leader_thread.get()
+        # time.sleep(5)
+        # print "STOPPING LEADER LISTENER (if running)"
+        # if not self.run_leader_listener_thread.empty():
+        #     self.run_leader_listener_thread.get()
+        # print "STOPPING LEADER (if running)"
+        # if not self.run_leader_thread.empty():
+        #     self.run_leader_thread.get()
 
 
     # ==========================================================================

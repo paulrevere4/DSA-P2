@@ -18,9 +18,16 @@ from serializer import Serializer
 # ==============================================================================
 # Communicates with lead server, sending messages and receiving transactions
 #
-def run_leader_listener(task_queue, host, port, run_leader_listener_thread, prints = True):
+def run_leader_listener(server, prints = True):
+
+    task_queue = server.task_queue
+    host = server.host
+    port = server.leader_listen_port
+    run_leader_listener_thread = server.run_leader_listener_thread
 
     while True:
+
+        # check if the thread should run, loop over and over again if not
         if run_leader_listener_thread.empty():
             # time.sleep(.5)
             # print "LEADER LISTENER NOT RUNNING"
@@ -29,92 +36,89 @@ def run_leader_listener(task_queue, host, port, run_leader_listener_thread, prin
             time.sleep(.1)
             print "LEADER LISTENER THREAD RUNNING"
 
-            # server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # server.setblocking(0)
+            # socket setup stuff
+            server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server.setblocking(0)
+            # Bind the socket to the port and listen
+            server.bind((host,port))
+            server.listen(5)
 
-            # # Bind the socket to the port
-            # server.bind((host,port))
+            inputs = [server]
+            outputs = []
 
-            # server.listen(5)
+            message_queues = {}
 
-            # inputs = [ server ]
-            # outputs = []
+            while inputs:
+                # Wait for at least one of the sockets to be ready for processing
+                if prints:
+                    print >>sys.stderr, 'LEADER LISTENER: waiting for the next event'
+                readable, writable, exceptional = select.select(inputs, outputs, inputs + outputs)
 
-            # message_queues = {}
+                # Handle inputs
+                for s in readable:
+                    if s is server:
+                        # A "readable" server socket is ready to accept a connection
+                        connection, client_address = s.accept()
+                        if prints:
+                            print >>sys.stderr, 'LEADER LISTENER: new connection from', client_address
+                        connection.setblocking(0)
+                        inputs.append(connection)
 
-            # while inputs:
-            #     # Wait for at least one of the sockets to be ready for processing
-            #     if prints:
-            #         print >>sys.stderr, '\nLEADER LISTENER: waiting for the next event\n'
-            #     readable, writable, exceptional = select.select(inputs, outputs, inputs + outputs)
+                        # Give the connection a queue for data we want to send
+                        message_queues[connection] = Queue.Queue()
+                    else:
+                        data = s.recv(1024)
+                        if data:
+                            # A readable client socket has data
+                            if prints:
+                                print >>sys.stderr, 'LEADER_LISTENER: Received "%s" from %s' % (data, s.getpeername())
+                            message_queues[s].put("Successfuly completed task: " + data)
+                            # Add output channel for response
+                            if s not in outputs:
+                                outputs.append(s)
+                        else:
+                            # Interpret empty result as closed connection
+                            if prints:
+                                print >>sys.stderr, 'closing', client_address, 'after reading no data'
+                            # Stop listening for input on the connection
+                            if s in outputs:
+                                outputs.remove(s)
+                            inputs.remove(s)
+                            s.close()
 
-            #     # Handle inputs
-            #     for s in readable:
+                            # Remove message queue
+                            del message_queues[s]
 
-            #         if s is server:
-            #             # A "readable" server socket is ready to accept a connection
-            #             connection, client_address = s.accept()
-            #             if prints:
-            #                 print >>sys.stderr, 'LEADER LISTENER:new connection from', client_address
-            #             connection.setblocking(0)
-            #             inputs.append(connection)
+                # Handle outputs
+                for s in writable:
+                    try:
+                        next_msg = message_queues[s].get_nowait()
+                        if prints:
+                            print "LEADER_LISTENER: About to send message to leader: '%s'" % next_msg
+                    except Queue.Empty:
+                        # No messages waiting so stop checking for writability.
+                        # print >>sys.stderr, 'LEADER_LISTENER: output queue for %s is empty\n' % str(s.getsockname())
+                        outputs.remove(s)
+                    except KeyError as e:
+                        if prints:
+                            print "LEADER_LISTENER: The socket was not found in the message map"
+                        s.send("No message")
+                    else:
+                        time.sleep(.1)
+                        s.send(next_msg)
 
-            #             # Give the connection a queue for data we want to send
-            #             message_queues[connection] = Queue.Queue()
+                # Handle "exceptional conditions"
+                for s in exceptional:
+                    if prints:
+                        print >>sys.stderr, 'LEADER_LISTENER: handling exceptional condition for', s.getpeername()
+                    # Stop listening for input on the connection
+                    inputs.remove(s)
+                    if s in outputs:
+                        outputs.remove(s)
+                    s.close()
 
-            #         else:
-            #             data = s.recv(1024)
-            #             if data:
-            #                 # A readable client socket has data
-            #                 if prints:
-            #                     print >>sys.stderr, 'LEADER_LISTENER: Received "%s" from %s' % (data, s.getpeername())
-            #                 message_queues[s].put("Successfuly completed task: " + data)
-            #                 # Add output channel for response
-            #                 if s not in outputs:
-            #                     outputs.append(s)
-            #             else:
-            #                 # Interpret empty result as closed connection
-            #                 if prints:
-            #                     print >>sys.stderr, 'closing', client_address, 'after reading no data'
-            #                 # Stop listening for input on the connection
-            #                 if s in outputs:
-            #                     outputs.remove(s)
-            #                 inputs.remove(s)
-            #                 s.close()
-
-            #                 # Remove message queue
-            #                 del message_queues[s]
-
-            #     # Handle outputs
-            #     for s in writable:
-            #         try:
-            #             next_msg = message_queues[s].get_nowait()
-            #             if prints:
-            #                 print "LEADER_LISTENER: About to send message to leader: \n     %s" % next_msg
-            #         except Queue.Empty:
-            #             # No messages waiting so stop checking for writability.
-            #             # print >>sys.stderr, 'LEADER_LISTENER: output queue for %s is empty\n' % str(s.getsockname())
-            #             outputs.remove(s)
-            #         except KeyError as e:
-            #             if prints:
-            #                 print "LEADER_LISTENER: The socket was not found in the message map"
-            #             s.send("No message")
-            #         else:
-            #             time.sleep(.1)
-            #             s.send(next_msg)
-
-            #     # Handle "exceptional conditions"
-            #     for s in exceptional:
-            #         if prints:
-            #             print >>sys.stderr, 'LEADER_LISTENER: handling exceptional condition for', s.getpeername()
-            #         # Stop listening for input on the connection
-            #         inputs.remove(s)
-            #         if s in outputs:
-            #             outputs.remove(s)
-            #         s.close()
-
-            #         # Remove message queue
-            #         del message_queues[s]
+                    # Remove message queue
+                    del message_queues[s]
 
             # TODO figure out how to have follower thread loop continuously
             # break
