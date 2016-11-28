@@ -31,6 +31,9 @@ class Server(object):
         # make the task queue
         self.task_queue = Queue.PriorityQueue()
 
+        # Temporary declaration of leader
+        self.is_leader = (server_num == 0)
+
     # ==========================================================================
     # Starts the worker threads
     #
