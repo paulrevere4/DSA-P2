@@ -22,4 +22,8 @@ Order of events
 - When a server receives a "leader is #" message
  - Stop server listener
  - Leader server runs "lead\_connections" and other servers run "leader\_listener"
-- After connections are formed, re-initialize listener for client/server
+- After connections are formed, re-initialize listener for server
+
+Config file formatting:
+
+\[Server number\] \[Server IP\] \[server\_port\] \[leader\_port\] \[client\_port\]
