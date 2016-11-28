@@ -40,7 +40,7 @@ def check_cmd(cmd):
 # ==============================================================================
 # Takes input and sends it to the specified server
 # *** TODO ***
-#   - Implement actual command parsing/error checks
+#   - Handle responses from server
 #
 def run(host, port):
     while True:
@@ -56,6 +56,7 @@ def run(host, port):
             s.connect((host, port))
             s.send(packed)
             print "CLIENT: Sent '%s' as to server at (host=%s, port=%d) as '%s'" %(cmd, host, port, packed)
+            s.close()
 
 if __name__ == "__main__":
 

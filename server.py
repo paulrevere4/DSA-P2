@@ -71,7 +71,34 @@ class Server(object):
         while True:
             if not self.task_queue.empty():
                 priority, task = self.task_queue.get()
-                print "MAIN_WORKER: COMPLETING TASK:", task
+                print "MAIN_WORKER: CARRYING OUT TASK:", task
+
+                if task[0] == "CLIENT":
+                    self.handle_client_input(task[1][0])
+
+    # ==========================================================================
+    # Handles client inputs for "create", "delete", "read", and "append"
+    # commands
+    #
+    def handle_client_input(self, cmd):
+        split_cmd = cmd.split()
+        if split_cmd[0] == "read":
+            # simply read the file
+            fname = split_cmd[1]
+            if not fname in self.file_system.keys():
+                print "MAIN_WORKER: ERROR: FILE '%s' NOT IN FILESYSTEM AT THIS TIME" %fname
+            else:
+                print "MAIN_WORKER: READING FILE '%s':" %fname
+                print self.file_system[fname]
+        if split_cmd[0] == "create":
+            # request create from leader
+            print "TODO: Implement create"
+        if split_cmd[0] == "delete":
+            # reqest delete from leader
+            print "TODO: Implement delete"
+        if split_cmd[0] == "append":
+            # request append from leader
+            print "TODO: Implement append"
 
 
 # ==============================================================================
