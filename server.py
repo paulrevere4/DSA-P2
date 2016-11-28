@@ -45,7 +45,7 @@ class Server(object):
         self.file_system = {}
 
         # Initializes empty transaction history
-        self.transaction_histoy = []
+        self.transaction_history = []
 
     # ==========================================================================
     # Starts the worker threads
