@@ -11,6 +11,8 @@ create <filename>: creates an empty file named <filename>
 delete <filename>: deletes file named <filename>
 read <filename>: displays the contents of <filename>
 append <filename> <line>: appends a <line> to <filename>
+exit : exits the client
+sleep <seconds>: client waits for specified number of seconds
 """
 # ==============================================================================
 
@@ -47,15 +49,22 @@ def run(host, port):
         time.sleep(.1)
         cmd = raw_input("Input: ")
         print "CLIENT: Read '%s' from command line" %cmd
-        if not check_cmd(cmd):
-            print "CLIENT: ERROR: INVALID COMMAND '%s'" %cmd
-        else:
+        if cmd == "exit":
+            print "CLIENT: EXITING"
+            exit(0)
+        elif cmd.split()[0] == "sleep":
+            seconds = float(cmd.split()[1])
+            print "CLIENT: SLEEPING FOR %.1f seconds" %seconds
+            time.sleep(seconds)
+        elif check_cmd(cmd):
             packed = Serializer.serialize([cmd])
             s = socket.socket()
             s.connect((host, port))
             s.send(packed)
             print "CLIENT: Sent '%s' as to server at (host=%s, port=%d) as '%s'" %(cmd, host, port, packed)
             s.close()
+        else:
+            print "CLIENT: ERROR: INVALID COMMAND '%s'" %cmd
 
 if __name__ == "__main__":
 
