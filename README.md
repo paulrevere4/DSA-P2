@@ -13,9 +13,13 @@ Distributed Systems &amp; Algorithms Project 2
 
 Order of events
 - Upping all servers individually
- - All upped servers start a listener for client/server connections
+ - All upped servers start two listeners
+  - One listener for client on client_port
+  - One listener for server connections on server_port
 - Client sends "start" to one server
 - Server that receives "start" broadcasts election start to other servers
  - For now, it can just broadcast "I am your leader"
 - When a server receives a "leader is #" message
+ - Stop server listener
  - Leader server runs "lead\_connections" and other servers run "leader\_listener"
+- After connections are formed, re-initialize listener for client/server
