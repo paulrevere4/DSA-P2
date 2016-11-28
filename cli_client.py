@@ -39,15 +39,12 @@ def check_cmd(cmd):
 
 # ==============================================================================
 # Takes input and sends it to the specified server
-# *** TODO ***
-#   - Implement actual command parsing/error checks
 #
 def run(host, port):
     while True:
         time.sleep(.1)
         cmd = raw_input("Input: ")
         print "CLIENT: Read '%s' from command line" %cmd
-
         if not check_cmd(cmd):
             print "CLIENT: ERROR: INVALID COMMAND '%s'" %cmd
         else:
