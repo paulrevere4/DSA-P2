@@ -27,8 +27,13 @@ class Server(object):
 
         self.server_locations = server_locations
 
+        # Gets host IP from server_locations
         self.host = server_locations[server_num][0]
-        self.cli_listen_port = server_locations[server_num][1]
+
+        # Gets listening ports from server_locations
+        self.server_listen_port = server_locations[server_num][1]
+        self.leader_listen_port = server_locations[server_num][2]
+        self.cli_listen_port = server_locations[server_num][3]
 
         # make the task queue
         self.task_queue = Queue.PriorityQueue()
@@ -77,7 +82,7 @@ def process_config(file_location):
     f = open(file_location, "r")
     for line in f:
         words = line.split()
-        config_map[int(words[0])] = (words[1], int(words[2]))
+        config_map[int(words[0])] = (words[1], int(words[2]), int(words[3]), int(words[4]))
 
     return config_map
 
