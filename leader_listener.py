@@ -80,7 +80,7 @@ def run_leader_listener(task_queue, host, port):
                 print >>sys.stderr, 'output queue for', s.getpeername(), 'is empty'
                 outputs.remove(s)
             except KeyError as e:
-                print e.args[0]
+                print "The socket was not found in the message map"
             else:
                 print >>sys.stderr, 'sending "%s" to %s' % (next_msg, s.getpeername())
                 s.send(next_msg)
