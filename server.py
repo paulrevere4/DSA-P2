@@ -11,6 +11,7 @@ import Queue
 from threading import Thread
 
 from client_listener import *
+from leader_listener import *
 from serializer import Serializer
 
 # ==============================================================================
@@ -56,11 +57,17 @@ class Server(object):
             target=run_client_listener, \
             args=(self.task_queue, self.host, self.cli_listen_port))
 
+        leader_listener_thread = Thread( \
+            target=run_leader_listener, \
+            args=(self.task_queue, self.host, self.leader_listen_port))
+
         # set threads as daemons so we can kill them
         client_listener_thread.daemon = True
+        leader_listener_thread.daemon = True
 
         # start threads
         client_listener_thread.start()
+        leader_listener_thread.start()
 
 
     # ==========================================================================
