@@ -58,9 +58,13 @@ class Server(object):
             target=run_client_listener, \
             args=(self.task_queue, self.host, self.cli_listen_port))
 
+        # Suppressing prints in leader to make debugging easier
+        leader_printing = True
+        if self.server_num == 0: leader_printing = False
+
         leader_listener_thread = Thread( \
             target=run_leader_listener, \
-            args=(self.task_queue, self.host, self.leader_listen_port))
+            args=(self.task_queue, self.host, self.leader_listen_port, leader_printing))
 
         # set threads as daemons so we can kill them
         client_listener_thread.daemon = True
@@ -75,6 +79,7 @@ class Server(object):
             leader_thread = Thread( \
                 target=run_leader, \
                 args=(self.task_queue, self.server_locations))
+            leader_thread.daemon = True
             leader_thread.start()
 
 
