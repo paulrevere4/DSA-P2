@@ -11,7 +11,7 @@ Distributed Systems &amp; Algorithms Project 2
 [Leader Election algorithms (we are using the Bully algorithm)](http://www.cs.rpi.edu/~pattes3/dsa_fall2016/LeaderElection.pdf)
 
 
-Order of events
+## Order of events
 - Upping all servers individually
  - All upped servers start two listeners
   - One listener for client on client_port
@@ -24,6 +24,11 @@ Order of events
  - Leader server runs "lead\_connections" and other servers run "leader\_listener"
 - After connections are formed, re-initialize listener for server
 
-Config file formatting:
-
+## Config file formatting:
 \[Server number\] \[Server IP\] \[server\_port\] \[leader\_port\] \[client\_port\]
+
+## Client input test cases
+Run as
+```
+$ python cli_client.py <server-host> <server-client-port>  <  <input-file>
+```
