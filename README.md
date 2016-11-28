@@ -27,8 +27,16 @@ Distributed Systems &amp; Algorithms Project 2
 ## Config file formatting:
 \[Server number\] \[Server IP\] \[server\_port\] \[leader\_port\] \[client\_port\]
 
-## Client input test cases
-Run as
+## Testing
+Run 3 servers with
+```
+$ . ./test_scripts/run3.sh
+```
+Run test case with
 ```
 $ python cli_client.py <server-host> <server-client-port>  <  <input-file>
+```
+Kill the running servers with
+```
+$ . ./test_scripts/kill.sh
 ```
