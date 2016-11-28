@@ -1,0 +1,11 @@
+create file.txt
+sleep 2
+append file.txt Lorem ipsum dolor sit amet
+sleep 2
+append file.txt consectetur adipiscing elit
+sleep 2
+read file.txt
+sleep 2
+delete file.txt
+sleep 2
+exit
