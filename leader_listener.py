@@ -34,7 +34,7 @@ def run_leader_listener(task_queue, host, port):
 
     while inputs:
         # Wait for at least one of the sockets to be ready for processing
-        print >>sys.stderr, '\nwaiting for the next event'
+        print >>sys.stderr, '\nLEADER LISTENER: waiting for the next event\n'
         readable, writable, exceptional = select.select(inputs, outputs, inputs + outputs)
 
         # Handle inputs
@@ -43,7 +43,7 @@ def run_leader_listener(task_queue, host, port):
             if s is server:
                 # A "readable" server socket is ready to accept a connection
                 connection, client_address = s.accept()
-                print >>sys.stderr, 'new connection from', client_address
+                print >>sys.stderr, 'LEADER LISTENER:new connection from', client_address
                 connection.setblocking(0)
                 inputs.append(connection)
 
@@ -55,7 +55,7 @@ def run_leader_listener(task_queue, host, port):
                 if data:
                     # A readable client socket has data
                     print >>sys.stderr, 'received "%s" from %s' % (data, s.getpeername())
-                    message_queues[s].put(data)
+                    message_queues[s].put("Successfuly completed task: " + data)
                     # Add output channel for response
                     if s not in outputs:
                         outputs.append(s)
@@ -81,6 +81,7 @@ def run_leader_listener(task_queue, host, port):
                 outputs.remove(s)
             except KeyError as e:
                 print "The socket was not found in the message map"
+                s.send("No message")
             else:
                 print >>sys.stderr, 'sending "%s" to %s' % (next_msg, s.getpeername())
                 s.send(next_msg)

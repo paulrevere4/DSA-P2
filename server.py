@@ -12,6 +12,7 @@ from threading import Thread
 
 from client_listener import *
 from leader_listener import *
+from leader import *
 from serializer import Serializer
 
 # ==============================================================================
@@ -68,6 +69,13 @@ class Server(object):
         # start threads
         client_listener_thread.start()
         leader_listener_thread.start()
+
+        if self.server_num == 0:
+            time.sleep(.2)
+            leader_thread = Thread( \
+                target=run_leader, \
+                args=(self.task_queue, self.server_locations))
+            leader_thread.start()
 
 
     # ==========================================================================
