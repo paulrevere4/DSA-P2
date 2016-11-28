@@ -92,7 +92,6 @@ if __name__ == "__main__":
         exit(1)
 
     config_map = process_config(sys.argv[2])
-    print config_map
     server_num = int(sys.argv[1])
 
     # setup server object and run
