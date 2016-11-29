@@ -49,6 +49,9 @@ def run_follower(self, prints = True):
             message_queues = {}
 
             election_replies = []
+            sent_election = []
+
+            start_election = self.holding_election
 
             if self.holding_election:
                 outputs = self.setup_connections(self.server_locations).values()
@@ -56,6 +59,7 @@ def run_follower(self, prints = True):
                     print "No outputs found, this server is now the leader"
                     self.is_leader = True
                     self.holding_election = False
+                    start_election = False
                     self.start_leader()
                 else:
                     print "Successfully connected to %i servers, sending out election now" % len(outputs)
@@ -114,7 +118,12 @@ def run_follower(self, prints = True):
                                     election_replies = []
 
                                     # Serialize response
-                                    reply = ['not_handled_yet', str(self.server_num), str(self.epoch), str(self.counter)]
+                                    reply = ["not handled yet", str(self.server_num), str(self.epoch), str(self.counter)]
+                                    if self.bully_compare(reply, deserialize):
+                                        reply[0] = 'higher_id'
+                                    else:
+                                        reply[0] = 'lower_id'
+
                                     print "FOLLOWER: Server %s replying to election request from %s: \n   %s" % (str(self.server_num), deserialize[1], str(reply))
                                     serialized = Serializer.serialize(reply)
                                     s.send(serialized)
@@ -128,13 +137,13 @@ def run_follower(self, prints = True):
                                 else:
                                     # Reply to election, probably
                                     election_replies.append(deserialize)
-                                    if len(election_replies) == len(inputs):
+                                    if len(election_replies) == len(sent_election):
                                         print "All results received! Results:"
                                         higher_ids = []
                                         for reply in election_replies:
                                             if reply[0] == 'higher_id':
                                                 higher_ids.append(reply)
-                                            print "    %s", str(reply)
+                                            print "    %s" % str(reply)
                                         if len(higher_ids) == 0:
                                             print "I am your leader!"
 
@@ -146,11 +155,13 @@ def run_follower(self, prints = True):
                         time.sleep(.1)
                         serialized = Serializer.serialize(next_msg[1])
                         s.send(serialized)
-                    if self.holding_election:
+                    if start_election and s not in sent_election:
+                        print "Sending election message"
                         message = ['election', str(self.server_num), str(self.epoch), str(self.counter)]
                         serialized = Serializer.serialize(message)
                         if s in outputs: outputs.remove(s)
                         inputs.append(s)
+                        sent_election.append(s)
                         s.send(serialized)
 
                 # Handle "exceptional conditions"
