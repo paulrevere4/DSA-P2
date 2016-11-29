@@ -70,6 +70,9 @@ def run_follower(self, prints = True):
                             print("FOLLOWER: Lost connection to Leader")
                             inputs.remove(s)
                             outputs.remove(s)
+                            server.listen(5)
+                            s.close()
+                            leader = None
                         elif data:
                             if s is leader:
                                 print "FOLLOWER: Receiving message from leader"
