@@ -180,7 +180,7 @@ class Server(object):
                 resp += self.file_system[fname]
             self.server_response_queue.put(resp)
         else:
-            msg = ["transaction_request", cmd, "", ""]
+            msg = ["transaction_request", cmd, "", "", str(self.server_num)]
             self.follower_message_queue.put((5, msg))
 
 
@@ -188,14 +188,16 @@ class Server(object):
     # When a Follower receives a "transaction_commit", it forwards the message
     # here to have the changes propogated to the file system
     #
-    # message = ["transaction_commit", command, epoch, counter]
+    # message = ["transaction_commit", command, epoch, counter, originator-num]
     #
     def commit_changes(self, message):
         print "SERVER: COMMITTING CHANGES (%s,%s): %s" % (message[2], message[3], message[1])
-        trans = Transaction(message[1:])
+        trans = Transaction(message[1:-1])
+        orignator = int(message[4])
         self.record_transaction(trans)
         resp = "    SERVER: " + self.commit_transaction_to_fs(trans) + "\n"
-        self.server_response_queue.put(resp)
+        if orignator == self.server_num:
+            self.server_response_queue.put(resp)
 
     # ==========================================================================
     # Adds a transaction to the transaction history

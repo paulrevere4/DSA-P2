@@ -62,7 +62,7 @@ def send_entire_history(self):
     for t in self.transaction_history:
         # pretend its a transaction request and distribute the message using distribute_message
         cmd = t.value
-        msg = ["transaction_request", cmd, "", ""]
+        msg = ["transaction_request", cmd, "-1", "-1", "-1"]
         distribute_message(self, msg)
 
 # ==============================================================================
