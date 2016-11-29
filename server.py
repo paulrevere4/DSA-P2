@@ -179,7 +179,6 @@ class Server(object):
         else:
             msg = ["transaction_request", cmd, "", ""]
             self.follower_message_queue.put((5, msg))
-            self.server_response_queue.put("SERVER: TODO CONFIRMATION FOR create, append, and delete")
 
 
     # ==========================================================================
@@ -189,10 +188,11 @@ class Server(object):
     # message = ["transaction_commit", command, epoch, counter]
     #
     def commit_changes(self, message):
-        print "SERVER: Committing changes (%s,%s): %s" % (message[2], message[3], message[1])
+        print "SERVER: COMMITTING CHANGES (%s,%s): %s" % (message[2], message[3], message[1])
         trans = Transaction(message[1:])
         self.record_transaction(trans)
-        self.commit_transaction_to_fs(trans)
+        resp = "    SERVER: " + self.commit_transaction_to_fs(trans) + "\n"
+        self.server_response_queue.put(resp)
 
     # ==========================================================================
     # Adds a transaction to the transaction history
@@ -201,21 +201,28 @@ class Server(object):
         trans_str = "%s" %trans.value
         split_cmd = trans_str.split()
         file = split_cmd[1]
+        resp = ""
         if split_cmd[0] == "create":
             if not file in self.file_system:
                 self.file_system[file] = ""
+                resp += "CREATED FILE '%s'" %file
             else:
-                print "Error, file already exists"
+                resp += "ERROR: FILE '%s' ALREADY EXISTS" %file
         elif split_cmd[0] == "append":
             if file in self.file_system:
-                self.file_system[file] += " ".join(split_cmd[2:]) + "\n"
+                to_write = " ".join(split_cmd[2:])
+                self.file_system[file] += to_write + "\n"
+                resp += "WROTE '%s' TO FILE '%s'" %(to_write, file)
             else:
-                print "Error, file doesn't exists"
+                resp += "ERROR: FILE '%s' DOESN'T EXIST" %file
         elif split_cmd[0] == "delete":
             if file in self.file_system:
                 del self.file_system[file]
+                resp += "DELETED FILE '%s'" %file
             else:
-                print "Error, file doesn't exists"
+                resp += "ERROR: FILE '%s' DOESN'T EXIST" %file
+        return resp
+
 
     # ==========================================================================
     # Adds a transaction to the transaction history
@@ -249,7 +256,8 @@ class Server(object):
                 self.transaction_history.append(trans)
         self.transaction_history = sorted(self.transaction_history)
         for t in self.transaction_history:
-            self.commit_transaction_to_fs(t)
+            print self.commit_transaction_to_fs(t)
+        self.write_transaction_history()
 
 # ==============================================================================
 # Processes a config file from file_location, returns map of server locations
