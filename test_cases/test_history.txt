@@ -1,0 +1,6 @@
+create file.txt 0 1
+append file.txt Lorem ipsum dolor sit amet 0 2
+append file.txt consectetur adipiscing elit 0 3
+create file2.txt 0 4
+append file2.txt foo 0 5
+append file2.txt bar 0 6

@@ -216,6 +216,7 @@ class Server(object):
     def record_transaction(self, trans):
         self.transaction_history.append(trans)
         self.transaction_history = sorted(self.transaction_history) # not fast
+        self.write_transaction_history()
 
     # ==========================================================================
     # Writes the transaction history to disk
@@ -233,7 +234,11 @@ class Server(object):
         self.transaction_history = []
         with open(history_fname) as f:
             for line in f:
-                trans = Transaction(line.split)
+                split_line = line.split()
+                command = " ".join(split_line[:-2])
+                epoch = int(split_line[-2])
+                counter = int(split_line[-1])
+                trans = Transaction(command, (epoch, counter))
                 self.transaction_history.append(trans)
         self.transaction_history = sorted(self.transaction_history)
         for t in self.transaction_history:
@@ -256,16 +261,22 @@ def process_config(file_location):
 if __name__ == "__main__":
 
     # usage prompt if wrong number of args given
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 3 and len(sys.argv) != 4:
         print   "[!] USAGE:\n" \
-                "    $ python server.py <int server_num> <config file path>"
+                "    $ python server.py <int server_num> <config file path> [<transaction-history-file>]"
         exit(1)
 
-    config_map = process_config(sys.argv[2])
     server_num = int(sys.argv[1])
+    config_map = process_config(sys.argv[2])
 
     # setup server object and run
     s = Server(server_num, config_map)
+
+    # if a history file is provided use it to build the fs
+    if len(sys.argv) == 4:
+        history_fname = str(sys.argv[3])
+        s.import_transaction_history(history_fname)
+
     s.start_threads()
     s.run()
 
