@@ -49,6 +49,9 @@ class Server(object):
         # make the task queues
         self.task_queue = Queue.PriorityQueue()
 
+        # Follower task queue
+        self.follower_task_queue = Queue.PriorityQueue()
+
         # queue of messages for the leader to send (recipient, message)
         self.leader_message_queue = Queue.Queue()
 
@@ -160,24 +163,8 @@ class Server(object):
             else:
                 print "MAIN_WORKER: READING FILE '%s':" %fname
                 print self.file_system[fname]
-        if split_cmd[0] == "create":
-            # request create from leader
-            print "TODO: Implement create"
-            self.leader_message_queue.put((0,cmd))
-            self.leader_message_queue.put((1,cmd))
-            self.leader_message_queue.put((2,cmd))
-        if split_cmd[0] == "delete":
-            # reqest delete from leader
-            print "TODO: Implement delete"
-            self.leader_message_queue.put((0,cmd))
-            self.leader_message_queue.put((1,cmd))
-            self.leader_message_queue.put((2,cmd))
-        if split_cmd[0] == "append":
-            # request append from leader
-            print "TODO: Implement append"
-            self.leader_message_queue.put((0,cmd))
-            self.leader_message_queue.put((1,cmd))
-            self.leader_message_queue.put((2,cmd))
+        else:
+            self.follower_task_queue.put((5, split_cmd))
 
 
 # ==============================================================================
@@ -210,8 +197,8 @@ if __name__ == "__main__":
     s.start_threads()
     s.run()
 
-    time.sleep(15)
-    print "STOPPING LEADER IF RUNNING"
-    s.stop_leader()
-    print "STOPPING FOLLOWER IF RUNNING"
-    s.stop_follower()
+    # time.sleep(15)
+    # print "STOPPING LEADER IF RUNNING"
+    # s.stop_leader()
+    # print "STOPPING FOLLOWER IF RUNNING"
+    # s.stop_follower()

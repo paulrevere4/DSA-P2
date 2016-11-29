@@ -18,22 +18,22 @@ from serializer import Serializer
 # ==============================================================================
 # Communicates with lead server, sending messages and receiving transactions
 #
-def run_follower(server, prints = True):
+def run_follower(self, prints = True):
 
-    task_queue = server.task_queue
-    host = server.host
-    port = server.leader_listen_port
-    run_follower_thread = server.run_follower_thread
+    task_queue = self.task_queue
+    host = self.host
+    port = self.leader_listen_port
+    run_follower_thread = self.run_follower_thread
 
     while True:
 
         # check if the thread should run, loop over and over again if not
-        if not server.should_run_follower():
+        if not self.should_run_follower():
             time.sleep(.1)
             # print "FOLLOWER NOT RUNNING"
         else:
             time.sleep(.1)
-            print "FOLLOWER THREAD RUNNING"
+            print "FOLLOWER THREAD RUNNING ON %s, %s" % (host, str(port))
 
             # socket setup stuff
             server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -47,26 +47,24 @@ def run_follower(server, prints = True):
 
             message_queues = {}
 
-            while inputs:
+            while True:
                 # Wait for at least one of the sockets to be ready for processing
-                if prints:
-                    print >>sys.stderr, 'FOLLOWER: waiting for the next event'
-                readable, writable, exceptional = select.select(inputs, outputs, inputs + outputs)
+                readable, writable, exceptional = select.select(inputs, outputs, inputs)
 
                 # Handle inputs
                 for s in readable:
                     if s is server:
-                        # A "readable" server socket is ready to accept a connection
+                        # A "readable" socket is ready to accept a connection, the first one to connect should be a leader
                         connection, client_address = s.accept()
                         if prints:
                             print >>sys.stderr, 'FOLLOWER: new connection from %s' % str(client_address)
                         connection.setblocking(0)
                         inputs.append(connection)
-
-                        # Give the connection a queue for data we want to send
-                        message_queues[connection] = Queue.Queue()
+                        outputs.append(connection)
                     else:
+                        print "waiting for data"
                         data = s.recv(1024)
+                        print "data received"
                         if data:
                             # A readable client socket has data
                             if prints:
@@ -75,49 +73,24 @@ def run_follower(server, prints = True):
                             # Add output channel for response
                             if s not in outputs:
                                 outputs.append(s)
-                        else:
-                            # Interpret empty result as closed connection
-                            if prints:
-                                print >>sys.stderr, 'closing', client_address, 'after reading no data'
-                            # Stop listening for input on the connection
-                            if s in outputs:
-                                outputs.remove(s)
-                            inputs.remove(s)
-                            s.close()
-
-                            # Remove message queue
-                            del message_queues[s]
 
                 # Handle outputs
                 for s in writable:
-                    try:
-                        next_msg = message_queues[s].get_nowait()
-                        if prints:
-                            print "FOLLOWER: About to send message to leader: '%s'" % next_msg
-                    except Queue.Empty:
-                        # No messages waiting so stop checking for writability.
-                        # print >>sys.stderr, 'FOLLOWER: output queue for %s is empty\n' % str(s.getsockname())
-                        outputs.remove(s)
-                    except KeyError as e:
-                        if prints:
-                            print "FOLLOWER: The socket was not found in the message map"
-                        s.send("No message")
-                    else:
+                    if not self.follower_task_queue.empty():
+                        next_msg = self.follower_task_queue.get()
+                        print "FOLLOWER: About to send message to leader: '%s'" % str(next_msg)
                         time.sleep(.1)
-                        s.send(next_msg)
+                        serialized = Serializer.serialize(next_msg[1])
+                        s.send(serialized)
 
                 # Handle "exceptional conditions"
                 for s in exceptional:
-                    if prints:
-                        print >>sys.stderr, 'FOLLOWER: handling exceptional condition for', s.getpeername()
+                    print >>sys.stderr, 'FOLLOWER: handling exceptional condition for', s.getpeername()
                     # Stop listening for input on the connection
                     inputs.remove(s)
                     if s in outputs:
                         outputs.remove(s)
                     s.close()
-
-                    # Remove message queue
-                    del message_queues[s]
 
             # TODO figure out how to have follower thread loop continuously
             # break

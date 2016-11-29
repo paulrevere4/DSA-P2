@@ -35,21 +35,6 @@ def setup_connections(server_locations):
 #
 def run_leader(server):
 
-    # Temporary messages for testing
-    # server.leader_message_queue.put((0,'create a.txt'))
-    # server.leader_message_queue.put((1,'create a.txt'))
-    # server.leader_message_queue.put((2,'create a.txt'))
-    # server.leader_message_queue.put((0,'append a.txt random text'))
-    # server.leader_message_queue.put((1,'append a.txt random text'))
-    # server.leader_message_queue.put((2,'append a.txt random text'))
-    # server.leader_message_queue.put((0,'delete a.txt'))
-    # server.leader_message_queue.put((1,'delete a.txt'))
-    # server.leader_message_queue.put((2,'delete a.txt'))
-
-    # messages =[ 'create a.txt',
-    #             'append a.txt random text',
-    #             'delete a.txt' ]
-
     while True:
 
         # check if the thread should run, loop over and over again if not
@@ -76,7 +61,9 @@ def run_leader(server):
                     # Received message from other server
                     print "RECEIVED MESSAGE FROM %s:" % str(s.getpeername())
                     data = s.recv(1024)
-                    print "MESSAGE: '%s'" %data
+                    if data:
+                        deserialized = Serializer.deserialize(data)
+                        print "MESSAGE: '%s'" %str(deserialized)
                     # TODO handle message
 
                 writable_set = set(writable)
