@@ -1,11 +1,11 @@
 create file.txt
-sleep 2
+sleep 3
 append file.txt Lorem ipsum dolor sit amet
-sleep 2
+sleep 3
 append file.txt consectetur adipiscing elit
-sleep 2
+sleep 3
 read file.txt
-sleep 2
+sleep 3
 delete file.txt
-sleep 2
+sleep 3
 exit
