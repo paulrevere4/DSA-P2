@@ -145,7 +145,14 @@ def run_follower(self, prints = True):
                                                 higher_ids.append(reply)
                                             print "    %s" % str(reply)
                                         if len(higher_ids) == 0:
-                                            print "I am your leader!"
+                                            print "This server is the new leader"
+                                            self.is_leader = True
+                                            self.holding_election = False
+                                            start_election = False
+                                            self.start_leader()
+                                            for s in sent_election:
+                                                reply = Serializer.serialize(['coordinator', str(self.server_num)])
+                                                s.send(reply)
 
                 # Handle outputs
                 for s in writable:
