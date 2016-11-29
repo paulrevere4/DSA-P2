@@ -66,6 +66,9 @@ class Server(object):
         # Temporary declaration of leader
         self.is_leader = (server_num == 0) # TODO remove hard coded leader when we can define/elect one
 
+        # Election information
+        self.holding_election = True
+
         # Initializes empty file system
         self.file_system = {}
 
@@ -258,6 +261,35 @@ class Server(object):
         for t in self.transaction_history:
             print self.commit_transaction_to_fs(t)
         self.write_transaction_history()
+
+    # ==========================================================================
+    # Returns True if first argument is greater than second argument
+    #
+    def bully_compare(message1, message2):
+        s1 = int(message1[1])
+        s2 = int(message2[1])
+        e1 = int(message1[2])
+        e2 = int(message2[2])
+        c1 = int(message1[3])
+        c2 = int(message2[3])
+
+        if e1 > e2:
+            return True
+        elif e1 == e2:
+            if c1 > c2:
+                return True
+            elif c1 == c2:
+                if s1 > s2:
+                    return True
+                elif s1 == s2:
+                    print "Wow"
+                    exit(1)
+                else:
+                    return False
+            else:
+                return False
+        else:
+            return False
 
 # ==============================================================================
 # Processes a config file from file_location, returns map of server locations

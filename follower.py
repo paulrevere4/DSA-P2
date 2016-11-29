@@ -64,7 +64,7 @@ def run_follower(self, prints = True):
                         connection.setblocking(0)
                         inputs.append(connection)
                         outputs.append(connection)
-                        if leader == None:
+                        if not self.holding_election and leader = None:
                             leader = connection
                     else: 
                         data = s.recv(1024)
@@ -89,12 +89,14 @@ def run_follower(self, prints = True):
                                 if deserialize[0] == 'election':
                                     # Hold election
                                     leader = None
+                                    self.holding_election = True
                                     next
                                 elif deserialize[0] == 'coordinator':
                                     # New leader has come online,
                                     print "FOLLOWER: New leader is %s" % deserialize[1]
                                     self.transaction_history = []
                                     self.file_system = {}
+                                    self.holding_election = False
                                 else:
                                     # Reply to election, probably
                                     election_replies.append(deserialize)
