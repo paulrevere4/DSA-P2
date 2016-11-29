@@ -53,7 +53,7 @@ def run_leader(server):
     while True:
 
         # check if the thread should run, loop over and over again if not
-        if server.run_leader_thread.empty():
+        if not server.should_run_leader():
             # time.sleep(.5)
             # print "LEADER THREAD NOT RUNNING"
             pass
@@ -104,8 +104,9 @@ def run_leader(server):
                 for s in exceptional:
                     print 'CONNECTION LOST FROM %s' % s.getpeername()
 
-                # print "LEADER DONE"
-                time.sleep(1)
+                if not server.should_run_leader():
+                    print "LEADER DONE"
+                    break
 
             # TODO figure out how to have leader thread loop continuously
             # break

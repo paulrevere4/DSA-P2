@@ -43,7 +43,7 @@ class Server(object):
         # these are queues, if they're empty the thread won't run
         # if they have a something in them the thread will run
         # its weird I know...
-        self.run_leader_thread = Queue.Queue()
+        self.run_leader_thread = False
         self.run_follower_thread = Queue.Queue()
 
         # make the task queues
@@ -54,13 +54,27 @@ class Server(object):
 
         # Temporary declaration of leader
         self.is_leader = (server_num == 0) # TODO remove hard coded leader when we can define/elect one
-        print "self.is_leader:", self.is_leader
 
         # Initializes empty file system
         self.file_system = {}
 
         # Initializes empty transaction history
         self.transaction_history = []
+
+    # ==========================================================================
+    #
+    def should_run_leader(self):
+        return self.run_leader_thread
+
+    # ==========================================================================
+    #
+    def stop_leader(self):
+        self.run_leader_thread = False
+
+    # ==========================================================================
+    #
+    def start_leader(self):
+        self.run_leader_thread = True
 
     # ==========================================================================
     # Starts the worker threads
@@ -78,7 +92,8 @@ class Server(object):
 
         follower_thread = threading.Thread( \
             target=run_follower, \
-            args=(self, leader_printing))
+            # args=(self, leader_printing))
+            args=(self,))
 
         leader_thread = threading.Thread( \
             target=run_leader, \
@@ -98,10 +113,14 @@ class Server(object):
             self.run_follower_thread.put(True)
             print "I AM THE LEADER"
             time.sleep(.5)
-            self.run_leader_thread.put(True)
+            self.start_leader()
         else:
             print "I AM NOT THE LEADER"
             self.run_follower_thread.put(True)
+
+        # time.sleep(10)
+        # print "STOPPING LEADER IF RUNNING"
+        # self.stop_leader()
 
     # ==========================================================================
     # Checks the task_queue for tasks and completes them. Main worker thread of
