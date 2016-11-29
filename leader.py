@@ -15,6 +15,7 @@ import errno
 
 from serializer import Serializer
 
+<<<<<<< HEAD
 # ==============================================================================
 # Creates a connection with every other server
 #
@@ -33,6 +34,8 @@ def setup_connections(server_locations):
 # ==============================================================================
 # Start of 2PC process for committing a transaction
 #
+=======
+>>>>>>> Elections
 def distribute_message(self, message):
     if message[0] == 'transaction_request':
         message[0] = 'transaction_commit'
@@ -81,7 +84,7 @@ def run_leader(self):
             print "LEADER THREAD RUNNING"
 
             # connect to all of the followers
-            sockets = setup_connections(self.server_locations)
+            sockets = self.setup_connections(self.server_locations)
 
             # on startup of leader write the history to all of the followers
             send_entire_history(self)
@@ -93,14 +96,14 @@ def run_leader(self):
 
                 for s in readable:
                     # Received message from other server
-                    print "RECEIVED MESSAGE FROM %s:" % str(s.getpeername())
                     data = s.recv(1024)
                     if data == "":
-                        print("FOLLOWER: Lost connection to server")
+                        print("LEADER: Lost connection to server")
                         sockets = remove_socket(sockets, s)
                     else:
+                        print "LEADER: RECEIVED MESSAGE FROM %s:" % str(s.getpeername())
                         deserialized = Serializer.deserialize(data)
-                        print "MESSAGE: '%s'" %str(deserialized)
+                        print "    MESSAGE: '%s'" %str(deserialized)
                         distribute_message(self, deserialized)
                     # TODO handle message
 
@@ -108,13 +111,16 @@ def run_leader(self):
                 while not self.leader_message_queue.empty():
                     recipient, message = self.leader_message_queue.get()
                     # messages_to_send[sockets[recipient]] = message
-                    recipient_socket = sockets[recipient]
-                    if recipient_socket in writable_set:
+                    recipient_socket = None
+                    if recipient in sockets: recipient_socket = sockets[recipient]
+                    if recipient_socket and recipient_socket in writable_set:
                         time.sleep(.1)
                         serialized = Serializer.serialize(message)
                         recipient_socket.send(serialized)
                         print "LEADER: SENT MESSAGE '%s' TO %s" % (message, str(recipient_socket.getpeername()))
                         # del messages_to_send[s][0]
+                    elif recipient_socket == None:
+                        print "LEADER: Could not connect to server %s" % recipient
                     else:
                         print "LEADER: ERROR: COULDN'T SEND MESSAGE TO server", recipient_socket.getpeername()
 
