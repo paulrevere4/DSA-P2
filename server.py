@@ -56,6 +56,9 @@ class Server(object):
         # queue of messages for the leader to send (recipient, message)
         self.leader_message_queue = Queue.Queue()
 
+        # queue of server responses
+        self.server_response_queue = Queue.Queue()
+
         # Tracking of epoch and counter values
         self.epoch = 0
         self.counter = 0
@@ -166,14 +169,18 @@ class Server(object):
         if split_cmd[0] == "read":
             # simply read the file
             fname = split_cmd[1]
+            resp = ""
             if not fname in self.file_system.keys():
-                print "MAIN_WORKER: ERROR: FILE '%s' NOT IN FILESYSTEM AT THIS TIME" %fname
+                resp += "SERVER: ERROR: FILE '%s' NOT IN FILESYSTEM AT THIS TIME" %fname
             else:
-                print "MAIN_WORKER: READING FILE '%s':" %fname
-                print self.file_system[fname]
+                resp += "SERVER: READING FILE '%s':\n" %fname
+                resp += self.file_system[fname]
+            self.server_response_queue.put(resp)
         else:
             msg = ["transaction_request", cmd, "", ""]
             self.follower_message_queue.put((5, msg))
+            self.server_response_queue.put("SERVER: TODO CONFIRMATION FOR create, append, and delete")
+
 
     # ==========================================================================
     # When a Follower receives a "transaction_commit", it forwards the message

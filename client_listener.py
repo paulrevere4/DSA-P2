@@ -16,14 +16,11 @@ from serializer import Serializer
 # Takes input from the command line client and hands it off to the main thread.
 # *** Does not listen for input from other servers ***
 #
-def run_client_listener(server):
-    task_queue = server.task_queue
-    host = server.host
-    port = server.cli_listen_port
-    s = socket.socket()         # Create a socket object
-    s.bind((host, port))        # Bind to the port
-    s.listen(5)                 # Now wait for client connection.
-    print "CLIENT_LISTENER: LISTENING ON host=%s port=%d" %(host, port)
+def run_client_listener(self):
+    s = socket.socket()                             # Create a socket object
+    s.bind((self.host, self.cli_listen_port))   # Bind to the port
+    s.listen(5)                                     # Now wait for client connection.
+    print "CLIENT_LISTENER: LISTENING ON host=%s port=%d" %(self.host, self.cli_listen_port)
     while True:
         time.sleep(.1)
         c, addr = s.accept()    # Establish connection with client.
@@ -31,6 +28,11 @@ def run_client_listener(server):
         received = Serializer.deserialize(c.recv(1024))
         task = ["CLIENT", received]
         print "CLIENT_LISTENER: %s" %task
-        task_queue.put((5,task)) # TODO solidify task priority
+        self.task_queue.put((5,task)) # TODO solidify task priority
+        resp = self.server_response_queue.get()
+        # resp = "TODO: SERVER RESPONSE"
+        packed = Serializer.serialize([resp])
+        print "CLIENT_LISTENER: SENDING RESPONSE '%s' as %s" %(resp, str(packed))
+        c.send(packed)
         c.close()                # Close the connection
         print "CLIENT_LISTENER: CONNECTION CLOSED"

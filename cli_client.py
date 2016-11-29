@@ -19,6 +19,7 @@ sleep <seconds>: client waits for specified number of seconds
 import sys
 import time
 import socket
+import threading
 
 from serializer import Serializer
 
@@ -61,7 +62,12 @@ def run(host, port):
             s = socket.socket()
             s.connect((host, port))
             s.send(packed)
-            print "CLIENT: Sent '%s' as to server at (host=%s, port=%d) as '%s'" %(cmd, host, port, packed)
+            print "CLIENT: SENT '%s' AS TO SERVER AT (HOST=%s, PORT=%d) AS '%s'" %(cmd, host, port, packed)
+            print "CLIENT: WAITING FOR SERVER RESPONSE"
+            resp = s.recv(1024)
+            unpacked = Serializer.deserialize(resp)
+            print "CLIENT: SERVER RESPONSE:"
+            print unpacked[0]
             s.close()
         else:
             print "CLIENT: ERROR: INVALID COMMAND '%s'" %cmd
@@ -71,7 +77,7 @@ if __name__ == "__main__":
     # usage prompt if wrong number of args given
     if len(sys.argv) != 3:
         print   "[!] USAGE:\n" \
-                "    $ python cli_client.py <host> <port>"
+                "    $ python cli_client.py <server-host> <server-port>"
         exit(1)
 
     # setup our script arguments
