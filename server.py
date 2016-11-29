@@ -154,7 +154,7 @@ class Server(object):
                     self.handle_client_input(task[1][0])
 
     # ==========================================================================
-    # Handles client inputs for "create", "delete", "read", and "append"
+    # Handles client inputs, spits back response if it's just a "read"
     # commands
     #
     def handle_client_input(self, cmd):
@@ -170,6 +170,29 @@ class Server(object):
         else:
             msg = ["transaction_request", cmd]
             self.follower_message_queue.put((5, msg))
+
+    # ==========================================================================
+    # When a Follower receives a "transaction_commit", it forwards the message
+    # here to have the changes propogated to the file system
+    #
+    def commit_changes(self, message):
+        split_cmd = message.split()
+        file = split_cmd[1]
+        if split_cmd[0] == "create":
+            if not file in self.file_system:
+                self.file_system[file] = ""
+            else:
+                print "Error, file already exists"
+        elif split_cmd[0] == "append":
+            if file in self.file_system:
+                self.file_system[file] += " ".join(split_cmd[2:])
+            else:
+                print "Error, file doesn't exists"
+        elif split_cmd[0] == "delete":
+            if file in self.file_system:
+                del self.file_system[file]
+            else:
+                print "Error, file doesn't exists"
 
     # ==========================================================================
     # Adds a transaction to the transaction history

@@ -76,6 +76,9 @@ def run_follower(self, prints = True):
                                 # A readable client socket has data
                                 deserialize = Serializer.deserialize(data)
                                 print >>sys.stderr, 'FOLLOWER: Received "%s" from %s' % (str(deserialize), s.getpeername())
+                                if deserialize[0] == 'transaction_commit':
+                                    print "FOLLOWER: Committing transaction %s" % deserialize[1]
+                                    self.commit_changes(deserialize[1])
 
 
                 # Handle outputs
