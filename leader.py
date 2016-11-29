@@ -54,9 +54,8 @@ def run_leader(server):
 
         # check if the thread should run, loop over and over again if not
         if not server.should_run_leader():
-            # time.sleep(.5)
+            time.sleep(.1)
             # print "LEADER THREAD NOT RUNNING"
-            pass
         else:
             time.sleep(.1)
             print "LEADER THREAD RUNNING"
