@@ -66,7 +66,7 @@ def run_follower(self, prints = True):
                             leader = connection
                     else: 
                         data = s.recv(1024)
-                        if data == 0:
+                        if data == "":
                             print("FOLLOWER: Lost connection to Leader")
                             inputs.remove(s)
                             outputs.remove(s)
