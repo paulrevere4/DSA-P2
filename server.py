@@ -175,8 +175,22 @@ class Server(object):
     # When a Follower receives a "transaction_commit", it forwards the message
     # here to have the changes propogated to the file system
     #
+    # message = ["transaction_commit", command, epoch, counter]
+    #
     def commit_changes(self, message):
-        split_cmd = message.split()
+        # command = message[1]
+        # epoch = message[2]
+        # counter = message[3]
+        trans = Transaction(message[1:])
+        self.record_transaction(trans)
+        self.commit_transaction_to_fs(trans)
+
+    # ==========================================================================
+    # Adds a transaction to the transaction history
+    #
+    def commit_transaction_to_fs(self, trans):
+        trans_str = "%s" %trans.value
+        split_cmd = trans_str.split()
         file = split_cmd[1]
         if split_cmd[0] == "create":
             if not file in self.file_system:
@@ -214,7 +228,14 @@ class Server(object):
     # Imports a transaction history, used when a server crashes
     #
     def import_transaction_history(self, history_fname):
-        pass
+        self.transaction_history = []
+        with open(history_fname) as f:
+            for line in f:
+                trans = Transaction(line.split)
+                self.transaction_history.append(trans)
+        self.transaction_history = sorted(self.transaction_history)
+        for t in self.transaction_history:
+            self.commit_transaction_to_fs(t)
 
 # ==============================================================================
 # Processes a config file from file_location, returns map of server locations
@@ -244,7 +265,7 @@ if __name__ == "__main__":
     # setup server object and run
     s = Server(server_num, config_map)
     s.start_threads()
-    s.run()
+    # s.run()
 
     # time.sleep(15)
     # print "STOPPING LEADER IF RUNNING"
@@ -253,5 +274,6 @@ if __name__ == "__main__":
     # s.stop_follower()
 
     # t = Transaction("create file.txt", (0,0))
-    # s.record_transaction(t)
+    # s.commit_changes(["transaction_commit", "create file.txt", "0", "0"])
     # s.write_transaction_history()
+    # print s.file_system

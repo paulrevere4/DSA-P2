@@ -24,8 +24,8 @@ class Transaction(object):
         else:
             # Set value, epoch, and counter from value and zxid if zxid exists
             self.value = value
-            self.epoch = zxid[0]
-            self.counter = zxid[1]
+            self.epoch = int(zxid[0])
+            self.counter = int(zxid[1])
 
     # ==========================================================================
     # Packs transaction into a list to be sent through serializer
