@@ -50,6 +50,16 @@ def run_follower(self, prints = True):
 
             election_replies = []
 
+            if self.holding_election:
+                outputs = self.setup_connections(self.server_locations).values()
+                if len(outputs) == 0:
+                    print "No outputs found, this server is now the leader"
+                    self.is_leader = True
+                    self.holding_election = False
+                    self.start_leader()
+                else:
+                    print "Successfully connected to %i servers, sending out election now" % len(outputs)
+
             while True:
                 # Wait for at least one of the sockets to be ready for processing
                 readable, writable, exceptional = select.select(inputs, outputs, inputs)
@@ -61,17 +71,25 @@ def run_follower(self, prints = True):
                         connection, client_address = s.accept()
                         if prints:
                             print >>sys.stderr, 'FOLLOWER: new connection from %s' % str(client_address)
-                        connection.setblocking(0)
+                        if not self.holding_election and leader == None:
+                            connection.setblocking(0)
+                            print "FOLLOWER: Connected to new leader"
+                            leader = connection
                         inputs.append(connection)
                         outputs.append(connection)
-                        if not self.holding_election and leader = None:
-                            leader = connection
-                    else: 
-                        data = s.recv(1024)
+                    else:
+                        try:
+                            data = s.recv(1024)
+                        except:
+                            data = None
                         if data == "":
-                            print("FOLLOWER: Lost connection to Leader")
+                            if s == leader:
+                                print("FOLLOWER: Unable to connect to leader")
+                            else:
+                                print("FOLLOWER: Unable to connect to server %s") % str(s.getpeername())
+
                             inputs.remove(s)
-                            outputs.remove(s)
+                            if s in outputs: outputs.remove(s)
                             server.listen(5)
                             s.close()
                             leader = None
@@ -88,21 +106,37 @@ def run_follower(self, prints = True):
                                 # Message is from another server, likely an election
                                 if deserialize[0] == 'election':
                                     # Hold election
+                                    if leader in inputs: inputs.remove(leader)
+                                    if leader in outputs: outputs.remove(leader)
+                                    self.stop_leader()
                                     leader = None
                                     self.holding_election = True
-                                    next
+                                    election_replies = []
+
+                                    # Serialize response
+                                    reply = ['not_handled_yet', str(self.server_num), str(self.epoch), str(self.counter)]
+                                    print "FOLLOWER: Server %s replying to election request from %s: \n   %s" % (str(self.server_num), deserialize[1], str(reply))
+                                    serialized = Serializer.serialize(reply)
+                                    s.send(serialized)
                                 elif deserialize[0] == 'coordinator':
                                     # New leader has come online,
                                     print "FOLLOWER: New leader is %s" % deserialize[1]
                                     self.transaction_history = []
                                     self.file_system = {}
                                     self.holding_election = False
+                                    election_replies = []
                                 else:
                                     # Reply to election, probably
                                     election_replies.append(deserialize)
-
-
-
+                                    if len(election_replies) == len(inputs):
+                                        print "All results received! Results:"
+                                        higher_ids = []
+                                        for reply in election_replies:
+                                            if reply[0] == 'higher_id':
+                                                higher_ids.append(reply)
+                                            print "    %s", str(reply)
+                                        if len(higher_ids) == 0:
+                                            print "I am your leader!"
 
                 # Handle outputs
                 for s in writable:
@@ -111,6 +145,12 @@ def run_follower(self, prints = True):
                         print "FOLLOWER: About to send message to leader: '%s'" % str(next_msg)
                         time.sleep(.1)
                         serialized = Serializer.serialize(next_msg[1])
+                        s.send(serialized)
+                    if self.holding_election:
+                        message = ['election', str(self.server_num), str(self.epoch), str(self.counter)]
+                        serialized = Serializer.serialize(message)
+                        if s in outputs: outputs.remove(s)
+                        inputs.append(s)
                         s.send(serialized)
 
                 # Handle "exceptional conditions"
