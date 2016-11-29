@@ -1,0 +1,7 @@
+create file.txt
+create file.txt
+append file.txt Lorem ipsum dolor sit amet
+append file.txt consectetur adipiscing elit
+read file.txt
+delete file.txt
+exit
