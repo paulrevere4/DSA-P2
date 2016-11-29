@@ -63,7 +63,10 @@ class Server(object):
         self.file_system = {}
 
         # Initializes empty transaction history
-        self.transaction_history = Queue.PriorityQueue()
+        self.transaction_history = []
+
+        # Filename for the transaction history on disk
+        self.transaction_history_fname = "server_%d.history" %self.server_num
 
     # ==========================================================================
     #
@@ -169,11 +172,26 @@ class Server(object):
             self.follower_message_queue.put((5, msg))
 
     # ==========================================================================
+    # Adds a transaction to the transaction history
     #
-    def record_transaction(self, transaction_str):
-        new_transaction = Transaction(transaction_str)
-        transaction_history.put(new_transaction)
+    def record_transaction(self, trans):
+        self.transaction_history.append(trans)
+        self.transaction_history = sorted(self.transaction_history) # not fast
 
+    # ==========================================================================
+    # Writes the transaction history to disk
+    #
+    def write_transaction_history(self):
+        f = open(self.transaction_history_fname, 'w')
+        for t in self.transaction_history:
+            f.write("%s\n" %t)
+        f.close()
+
+    # ==========================================================================
+    # Imports a transaction history, used when a server crashes
+    #
+    def import_transaction_history(self, history_fname):
+        pass
 
 # ==============================================================================
 # Processes a config file from file_location, returns map of server locations
@@ -210,3 +228,7 @@ if __name__ == "__main__":
     # s.stop_leader()
     # print "STOPPING FOLLOWER IF RUNNING"
     # s.stop_follower()
+
+    # t = Transaction("create file.txt", (0,0))
+    # s.record_transaction(t)
+    # s.write_transaction_history()
