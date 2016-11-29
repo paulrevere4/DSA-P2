@@ -46,8 +46,11 @@ class Server(object):
         self.run_leader_thread = Queue.Queue()
         self.run_leader_listener_thread = Queue.Queue()
 
-        # make the task queue
+        # make the task queues
         self.task_queue = Queue.PriorityQueue()
+
+        # queue of messages for the leader to send (recipient, message)
+        self.leader_message_queue = Queue.Queue()
 
         # Temporary declaration of leader
         self.is_leader = (server_num == 0) # TODO remove hard coded leader when we can define/elect one
@@ -139,12 +142,21 @@ class Server(object):
         if split_cmd[0] == "create":
             # request create from leader
             print "TODO: Implement create"
+            self.leader_message_queue.put((0,cmd))
+            self.leader_message_queue.put((1,cmd))
+            self.leader_message_queue.put((2,cmd))
         if split_cmd[0] == "delete":
             # reqest delete from leader
             print "TODO: Implement delete"
+            self.leader_message_queue.put((0,cmd))
+            self.leader_message_queue.put((1,cmd))
+            self.leader_message_queue.put((2,cmd))
         if split_cmd[0] == "append":
             # request append from leader
             print "TODO: Implement append"
+            self.leader_message_queue.put((0,cmd))
+            self.leader_message_queue.put((1,cmd))
+            self.leader_message_queue.put((2,cmd))
 
 
 # ==============================================================================
