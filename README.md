@@ -40,3 +40,12 @@ Kill the running servers with
 ```
 $ . ./test_scripts/kill.sh
 ```
+
+## Message types
+For requesting and committing transactions
+```
+['transaction_request', operation] - follower requests a transaction to leader
+['transaction_proposal', transaction-string] - transaction proposal from leader to followers
+['transaction_acknowledge', transaction-string] - trasaction accept/acknowledge from follower to the leader
+['transaction_commit', transaction-string] - leader committing a transaction to the followers
+```
