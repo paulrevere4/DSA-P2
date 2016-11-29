@@ -33,8 +33,15 @@ def setup_connections(server_locations):
 def distribute_message(self, message):
     if message[0] == 'transaction_request':
         message[0] = 'transaction_commit'
+        message[2] = str(self.epoch)
+        message[3] = str(self.counter)
+        self.counter+=1
+
         for key, location in self.server_locations.items():
             self.leader_message_queue.put((key, message))
+
+    elif message[0] == 'transaction_proposal':
+        self.record_transaction(message)
 
 def remove_socket(sockets, socket):
     for key, sock in sockets.items():

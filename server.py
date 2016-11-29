@@ -56,6 +56,10 @@ class Server(object):
         # queue of messages for the leader to send (recipient, message)
         self.leader_message_queue = Queue.Queue()
 
+        # Tracking of epoch and counter values
+        self.epoch = 0
+        self.counter = 0
+
         # Temporary declaration of leader
         self.is_leader = (server_num == 0) # TODO remove hard coded leader when we can define/elect one
 
@@ -168,7 +172,7 @@ class Server(object):
                 print "MAIN_WORKER: READING FILE '%s':" %fname
                 print self.file_system[fname]
         else:
-            msg = ["transaction_request", cmd]
+            msg = ["transaction_request", cmd, "", ""]
             self.follower_message_queue.put((5, msg))
 
     # ==========================================================================
@@ -178,9 +182,7 @@ class Server(object):
     # message = ["transaction_commit", command, epoch, counter]
     #
     def commit_changes(self, message):
-        # command = message[1]
-        # epoch = message[2]
-        # counter = message[3]
+        print "SERVER: Committing changes (%s,%s): %s" % (message[2], message[3], message[1])
         trans = Transaction(message[1:])
         self.record_transaction(trans)
         self.commit_transaction_to_fs(trans)
@@ -199,7 +201,7 @@ class Server(object):
                 print "Error, file already exists"
         elif split_cmd[0] == "append":
             if file in self.file_system:
-                self.file_system[file] += " ".join(split_cmd[2:])
+                self.file_system[file] += " ".join(split_cmd[2:]) + "\n"
             else:
                 print "Error, file doesn't exists"
         elif split_cmd[0] == "delete":
@@ -265,7 +267,7 @@ if __name__ == "__main__":
     # setup server object and run
     s = Server(server_num, config_map)
     s.start_threads()
-    # s.run()
+    s.run()
 
     # time.sleep(15)
     # print "STOPPING LEADER IF RUNNING"
