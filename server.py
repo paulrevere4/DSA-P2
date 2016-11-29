@@ -50,7 +50,7 @@ class Server(object):
         self.task_queue = Queue.PriorityQueue()
 
         # Follower task queue
-        self.follower_task_queue = Queue.PriorityQueue()
+        self.follower_message_queue = Queue.PriorityQueue()
 
         # queue of messages for the leader to send (recipient, message)
         self.leader_message_queue = Queue.Queue()
@@ -164,7 +164,8 @@ class Server(object):
                 print "MAIN_WORKER: READING FILE '%s':" %fname
                 print self.file_system[fname]
         else:
-            self.follower_task_queue.put((5, split_cmd))
+            msg = ["transaction_request", cmd]
+            self.follower_message_queue.put((5, msg))
 
 
 # ==============================================================================
