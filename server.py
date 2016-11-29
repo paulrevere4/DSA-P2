@@ -13,6 +13,7 @@ import threading
 from client_listener import *
 from follower import *
 from leader import *
+from transaction import *
 from serializer import Serializer
 
 # ==============================================================================
@@ -62,7 +63,7 @@ class Server(object):
         self.file_system = {}
 
         # Initializes empty transaction history
-        self.transaction_history = []
+        self.transaction_history = Queue.PriorityQueue()
 
     # ==========================================================================
     #
@@ -166,6 +167,12 @@ class Server(object):
         else:
             msg = ["transaction_request", cmd]
             self.follower_message_queue.put((5, msg))
+
+    # ==========================================================================
+    #
+    def record_transaction(self, transaction_str):
+        new_transaction = Transaction(transaction_str)
+        transaction_history.put(new_transaction)
 
 
 # ==============================================================================

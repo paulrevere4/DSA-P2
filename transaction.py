@@ -29,9 +29,24 @@ class Transaction(object):
 
 	# ==========================================================================
     # Packs transaction into a list to be sent through serializer
-    #	
+    #
 	def pack(self):
 		return [self.value, str(self.epoch), str(self.counter)]
 
+	# ==========================================================================
+    # For printing
+    #
 	def __repr__(self):
 		return str(self.pack())
+
+	# ==========================================================================
+    # For priority queue placement
+    #
+	def __lt__(self, other):
+		if self.epoch < other.epoch:
+			return True
+		else:
+			if self.epoch == other.epoch and self.counter < other.counter:
+				return True
+			else:
+				return False
