@@ -2,7 +2,7 @@
 Theo Browne & Paul Revere
 Distributed Systems and Algorithms 2016
 Project 2
-leader_listener.py
+follower.py
 """
 # ==============================================================================
 
@@ -18,23 +18,23 @@ from serializer import Serializer
 # ==============================================================================
 # Communicates with lead server, sending messages and receiving transactions
 #
-def run_leader_listener(server, prints = True):
+def run_follower(server, prints = True):
 
     task_queue = server.task_queue
     host = server.host
     port = server.leader_listen_port
-    run_leader_listener_thread = server.run_leader_listener_thread
+    run_follower_thread = server.run_follower_thread
 
     while True:
 
         # check if the thread should run, loop over and over again if not
-        if run_leader_listener_thread.empty():
+        if run_follower_thread.empty():
             # time.sleep(.5)
-            # print "LEADER LISTENER NOT RUNNING"
+            # print "FOLLOWER NOT RUNNING"
             pass
         else:
             time.sleep(.1)
-            print "LEADER LISTENER THREAD RUNNING"
+            print "FOLLOWER THREAD RUNNING"
 
             # socket setup stuff
             server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -51,7 +51,7 @@ def run_leader_listener(server, prints = True):
             while inputs:
                 # Wait for at least one of the sockets to be ready for processing
                 if prints:
-                    print >>sys.stderr, 'LEADER LISTENER: waiting for the next event'
+                    print >>sys.stderr, 'FOLLOWER: waiting for the next event'
                 readable, writable, exceptional = select.select(inputs, outputs, inputs + outputs)
 
                 # Handle inputs
@@ -60,7 +60,7 @@ def run_leader_listener(server, prints = True):
                         # A "readable" server socket is ready to accept a connection
                         connection, client_address = s.accept()
                         if prints:
-                            print >>sys.stderr, 'LEADER LISTENER: new connection from', client_address
+                            print >>sys.stderr, 'FOLLOWER: new connection from', client_address
                         connection.setblocking(0)
                         inputs.append(connection)
 
@@ -71,7 +71,7 @@ def run_leader_listener(server, prints = True):
                         if data:
                             # A readable client socket has data
                             if prints:
-                                print >>sys.stderr, 'LEADER_LISTENER: Received "%s" from %s' % (data, s.getpeername())
+                                print >>sys.stderr, 'FOLLOWER: Received "%s" from %s' % (data, s.getpeername())
                             message_queues[s].put("Successfuly completed task: " + data)
                             # Add output channel for response
                             if s not in outputs:
@@ -94,14 +94,14 @@ def run_leader_listener(server, prints = True):
                     try:
                         next_msg = message_queues[s].get_nowait()
                         if prints:
-                            print "LEADER_LISTENER: About to send message to leader: '%s'" % next_msg
+                            print "FOLLOWER: About to send message to leader: '%s'" % next_msg
                     except Queue.Empty:
                         # No messages waiting so stop checking for writability.
-                        # print >>sys.stderr, 'LEADER_LISTENER: output queue for %s is empty\n' % str(s.getsockname())
+                        # print >>sys.stderr, 'FOLLOWER: output queue for %s is empty\n' % str(s.getsockname())
                         outputs.remove(s)
                     except KeyError as e:
                         if prints:
-                            print "LEADER_LISTENER: The socket was not found in the message map"
+                            print "FOLLOWER: The socket was not found in the message map"
                         s.send("No message")
                     else:
                         time.sleep(.1)
@@ -110,7 +110,7 @@ def run_leader_listener(server, prints = True):
                 # Handle "exceptional conditions"
                 for s in exceptional:
                     if prints:
-                        print >>sys.stderr, 'LEADER_LISTENER: handling exceptional condition for', s.getpeername()
+                        print >>sys.stderr, 'FOLLOWER: handling exceptional condition for', s.getpeername()
                     # Stop listening for input on the connection
                     inputs.remove(s)
                     if s in outputs:

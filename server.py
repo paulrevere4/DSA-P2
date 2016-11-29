@@ -11,7 +11,7 @@ import Queue
 import threading
 
 from client_listener import *
-from leader_listener import *
+from follower import *
 from leader import *
 from serializer import Serializer
 
@@ -44,7 +44,7 @@ class Server(object):
         # if they have a something in them the thread will run
         # its weird I know...
         self.run_leader_thread = Queue.Queue()
-        self.run_leader_listener_thread = Queue.Queue()
+        self.run_follower_thread = Queue.Queue()
 
         # make the task queues
         self.task_queue = Queue.PriorityQueue()
@@ -76,8 +76,8 @@ class Server(object):
             target=run_client_listener, \
             args=(self,))
 
-        leader_listener_thread = threading.Thread( \
-            target=run_leader_listener, \
+        follower_thread = threading.Thread( \
+            target=run_follower, \
             args=(self, leader_printing))
 
         leader_thread = threading.Thread( \
@@ -86,31 +86,22 @@ class Server(object):
 
         # set threads as daemons so we can kill them
         client_listener_thread.daemon = True
-        leader_listener_thread.daemon = True
+        follower_thread.daemon = True
         leader_thread.daemon = True
 
         # start threads
         client_listener_thread.start()
-        leader_listener_thread.start()
+        follower_thread.start()
         leader_thread.start()
 
         if self.is_leader:
-            self.run_leader_listener_thread.put(True)
+            self.run_follower_thread.put(True)
             print "I AM THE LEADER"
             time.sleep(.5)
             self.run_leader_thread.put(True)
         else:
             print "I AM NOT THE LEADER"
-            self.run_leader_listener_thread.put(True)
-
-        # time.sleep(5)
-        # print "STOPPING LEADER LISTENER (if running)"
-        # if not self.run_leader_listener_thread.empty():
-        #     self.run_leader_listener_thread.get()
-        # print "STOPPING LEADER (if running)"
-        # if not self.run_leader_thread.empty():
-        #     self.run_leader_thread.get()
-
+            self.run_follower_thread.put(True)
 
     # ==========================================================================
     # Checks the task_queue for tasks and completes them. Main worker thread of
