@@ -49,7 +49,15 @@ For requesting and committing transactions
 ['transaction_acknowledge', transaction-string, epoch-string, counter-string] - trasaction accept/acknowledge from follower to the leader
 ['transaction_commit', transaction-string, epoch-string, counter-string] - leader committing a transaction to the followers
 ```
+
+For elections
+```
+['election', server-number, epoch-string, counter-string] - Initiating election
+['higher_id', server-number, epoch-string, counter-string] - Response to election
+['lower_id', server-number, epoch-string, counter-string] - Response to election
+['coordinator', server-number, epoch-string, counter-string] - Become coordinator
+```
 TODO:
-- Reply to client
 - Elections
 - two-phase commits
+- Rebuild recovered server from written history & downloaded history

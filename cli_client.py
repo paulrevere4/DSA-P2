@@ -62,8 +62,8 @@ def run(host, port):
             s = socket.socket()
             s.connect((host, port))
             s.send(packed)
-            print "CLIENT: SENT '%s' AS TO SERVER AT (HOST=%s, PORT=%d) AS '%s'" %(cmd, host, port, packed)
-            print "CLIENT: WAITING FOR SERVER RESPONSE"
+            # print "CLIENT: SENT '%s' AS TO SERVER AT (HOST=%s, PORT=%d) AS '%s'" %(cmd, host, port, packed)
+            # print "CLIENT: WAITING FOR SERVER RESPONSE"
             resp = s.recv(1024)
             unpacked = Serializer.deserialize(resp)
             print "CLIENT: SERVER RESPONSE:"

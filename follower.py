@@ -48,6 +48,8 @@ def run_follower(self, prints = True):
 
             message_queues = {}
 
+            election_replies = []
+
             while True:
                 # Wait for at least one of the sockets to be ready for processing
                 readable, writable, exceptional = select.select(inputs, outputs, inputs)
@@ -74,14 +76,31 @@ def run_follower(self, prints = True):
                             s.close()
                             leader = None
                         elif data:
+                            deserialize = Serializer.deserialize(data)
                             if s is leader:
                                 print "FOLLOWER: Receiving message from leader"
                                 # A readable client socket has data
-                                deserialize = Serializer.deserialize(data)
                                 print >>sys.stderr, 'FOLLOWER: Received "%s" from %s' % (str(deserialize), s.getpeername())
                                 if deserialize[0] == 'transaction_commit':
                                     print "FOLLOWER: Committing transaction %s" % deserialize[1]
                                     self.commit_changes(deserialize)
+                            else:
+                                # Message is from another server, likely an election
+                                if deserialize[0] == 'election':
+                                    # Hold election
+                                    leader = None
+                                    next
+                                elif deserialize[0] == 'coordinator':
+                                    # New leader has come online,
+                                    print "FOLLOWER: New leader is %s" % deserialize[1]
+                                    self.transaction_history = []
+                                    self.file_system = {}
+                                else:
+                                    # Reply to election, probably
+                                    election_replies.append(deserialize)
+
+
+
 
                 # Handle outputs
                 for s in writable:
