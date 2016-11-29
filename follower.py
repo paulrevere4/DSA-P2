@@ -60,7 +60,7 @@ def run_follower(server, prints = True):
                         # A "readable" server socket is ready to accept a connection
                         connection, client_address = s.accept()
                         if prints:
-                            print >>sys.stderr, 'FOLLOWER: new connection from', client_address
+                            print >>sys.stderr, 'FOLLOWER: new connection from %s' % str(client_address)
                         connection.setblocking(0)
                         inputs.append(connection)
 
@@ -72,7 +72,7 @@ def run_follower(server, prints = True):
                             # A readable client socket has data
                             if prints:
                                 print >>sys.stderr, 'FOLLOWER: Received "%s" from %s' % (data, s.getpeername())
-                            message_queues[s].put("Successfuly completed task: " + data)
+                            message_queues[s].put("Successfuly completed task: %s" % data)
                             # Add output channel for response
                             if s not in outputs:
                                 outputs.append(s)
