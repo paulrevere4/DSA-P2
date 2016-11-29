@@ -30,6 +30,9 @@ def setup_connections(server_locations):
         sockets[key] = s
     return sockets
 
+# ==============================================================================
+# Start of 2PC process for committing a transaction
+#
 def distribute_message(self, message):
     if message[0] == 'transaction_request':
         message[0] = 'transaction_commit'
@@ -43,11 +46,24 @@ def distribute_message(self, message):
     elif message[0] == 'transaction_proposal':
         self.record_transaction(message)
 
+# ==============================================================================
+# Removes a socket from sockets
+#
 def remove_socket(sockets, socket):
     for key, sock in sockets.items():
         if sock == socket:
             del sockets[key]
     return sockets
+
+# ==============================================================================
+# Sends the leader's entire history so the followers will be synced with it
+#
+def send_entire_history(self):
+    for t in self.transaction_history:
+        # pretend its a transaction request and distribute the message using distribute_message
+        cmd = t.value
+        msg = ["transaction_request", cmd, "", ""]
+        distribute_message(self, message)
 
 # ==============================================================================
 # Listener for lead server

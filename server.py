@@ -265,7 +265,7 @@ class Server(object):
     # ==========================================================================
     # Returns True if first argument is greater than second argument
     #
-    def bully_compare(message1, message2):
+    def bully_compare(self, message1, message2):
         s1 = int(message1[1])
         s2 = int(message2[1])
         e1 = int(message1[2])

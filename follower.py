@@ -64,9 +64,9 @@ def run_follower(self, prints = True):
                         connection.setblocking(0)
                         inputs.append(connection)
                         outputs.append(connection)
-                        if not self.holding_election and leader = None:
+                        if not self.holding_election and leader == None:
                             leader = connection
-                    else: 
+                    else:
                         data = s.recv(1024)
                         if data == "":
                             print("FOLLOWER: Lost connection to Leader")
