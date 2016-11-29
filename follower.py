@@ -28,7 +28,7 @@ def run_follower(server, prints = True):
     while True:
 
         # check if the thread should run, loop over and over again if not
-        if run_follower_thread.empty():
+        if not server.should_run_follower():
             # time.sleep(.5)
             # print "FOLLOWER NOT RUNNING"
             pass

@@ -44,7 +44,7 @@ class Server(object):
         # if they have a something in them the thread will run
         # its weird I know...
         self.run_leader_thread = False
-        self.run_follower_thread = Queue.Queue()
+        self.run_follower_thread = False
 
         # make the task queues
         self.task_queue = Queue.PriorityQueue()
@@ -75,6 +75,21 @@ class Server(object):
     #
     def start_leader(self):
         self.run_leader_thread = True
+
+    # ==========================================================================
+    #
+    def should_run_follower(self):
+        return self.run_follower_thread
+
+    # ==========================================================================
+    #
+    def stop_follower(self):
+        self.run_follower_thread = False
+
+    # ==========================================================================
+    #
+    def start_follower(self):
+        self.run_follower_thread = True
 
     # ==========================================================================
     # Starts the worker threads
@@ -110,17 +125,13 @@ class Server(object):
         leader_thread.start()
 
         if self.is_leader:
-            self.run_follower_thread.put(True)
+            self.start_follower()
             print "I AM THE LEADER"
             time.sleep(.5)
             self.start_leader()
         else:
             print "I AM NOT THE LEADER"
-            self.run_follower_thread.put(True)
-
-        # time.sleep(10)
-        # print "STOPPING LEADER IF RUNNING"
-        # self.stop_leader()
+            self.start_follower()
 
     # ==========================================================================
     # Checks the task_queue for tasks and completes them. Main worker thread of
@@ -198,3 +209,9 @@ if __name__ == "__main__":
     s = Server(server_num, config_map)
     s.start_threads()
     s.run()
+
+    time.sleep(15)
+    print "STOPPING LEADER IF RUNNING"
+    s.stop_leader()
+    print "STOPPING FOLLOWER IF RUNNING"
+    s.stop_follower()
