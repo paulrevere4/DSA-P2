@@ -49,3 +49,7 @@ For requesting and committing transactions
 ['transaction_acknowledge', transaction-string, epoch-string, counter-string] - trasaction accept/acknowledge from follower to the leader
 ['transaction_commit', transaction-string, epoch-string, counter-string] - leader committing a transaction to the followers
 ```
+TODO:
+- Reply to client
+- Elections
+- two-phase commits
