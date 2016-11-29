@@ -1,0 +1,48 @@
+\documentclass[12pt]{scrartcl}
+\usepackage[superscript,biblabel]{cite}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{fullpage}
+\usepackage{setspace}
+\usepackage{csquotes}
+\usepackage{indentfirst}
+\usepackage[T1]{fontenc}
+\usepackage{titling}
+
+\setlength{\droptitle}{-6em}
+\doublespacing
+\hypersetup{%
+  colorlinks=true,% hyperlinks will be coloured
+  linkcolor=blue,% hyperlink text will be green
+}
+
+\begin{document}
+
+	\title{Distributed Systems and Algorithms\\Project 2}
+	\author{Theo Browne and Paul Revere}
+	\date{\vspace{-5ex}}
+
+	\maketitle
+
+\end{document}
+
+
+	% \section*{General Overview}
+
+	% To demonstrate our ability to implement a distributed system, we were instructed to create a distributed filesystem using Raymond's algorithm. ``Files'' are shared between nodes, which can create, read, append, or delete files. To emulate single-access resources, these ``files'' only exist within one node at a time, being deleted as they are requested by other nodes. This allows the files themselves to serve as ``access tokens'', preventing redundancy between nodes.
+
+	% To assure no collisions occur due to multiple nodes accessing/holding the same file, request queues are used. A single FIFO request queue exists within each node, tracking the requests that have been made and completing them one at a time. 
+
+	% A config file is used to configure each individual node, each of which is an individual Python instance. The configuration file lists the node name, IP address, and port for the node being initialized and all of its neighbors.
+
+	% There are two main threads in each Python instance, one for listening to requests, and one for processing them. Whenever the listening thread receives a request (TCP requests through Python SocketServer), the request is deserialized and added to the requests queue. The processing thread is constantly cycling through the queue, completing tasks when it can and adding them back to the end of the queue when it is waiting for a return. 
+
+	% \section*{Function Descriptions}
+
+	% The \textit{create} function adds a representation of the "file" to a local Python dictionary, titled \textit{files}. A new, empty file is created by calling \textit{files[filename] = ``''}. This creation is broadcast through the network by \textit{broadcast\_after\_create}, allowing for every node to update their \textit{token\_directions\{\}} map. 
+
+	% The \textit{delete} function obtains and deletes the file (and token) for a given filename. If the node calling \textit{delete} does not currently have the \textit{filename} in \textit{files}, it references \textit{token\_directions} and makes a request in the direction for the given \textit{filename}. Upon receiving a return with a file, it is automatically added to \textit{files}, so finalizing the deletion is as simple as removing the element from \textit{files} once the request and return are complete. 
+
+	% The \textit{read} function works identically to delete, but ends by printing the content of the file instead of deleting the file from \textit{files}.
+
+	% \textit{Append} also works in the same pattern as \textit{delete} and \textit{read}, requesting the file (token) if it is not already held in \textit{files}. Once the file is obtained, the requested append is made with a simple plus-equals, formatted as \textit{files[filename] += text\_to\_append}.
