@@ -63,7 +63,7 @@ def send_entire_history(self):
         # pretend its a transaction request and distribute the message using distribute_message
         cmd = t.value
         msg = ["transaction_request", cmd, "", ""]
-        distribute_message(self, message)
+        distribute_message(self, msg)
 
 # ==============================================================================
 # Listener for lead server
@@ -80,12 +80,11 @@ def run_leader(self):
             time.sleep(.1)
             print "LEADER THREAD RUNNING"
 
+            # connect to all of the followers
             sockets = setup_connections(self.server_locations)
 
-            # test data, Map of messages to send to sockets, key = socket, val = message to send
-            # TODO remove
-            # for s in sockets.keys():
-            #     messages_to_send[s] = messages[:]
+            # on startup of leader write the history to all of the followers
+            send_entire_history(self)
 
             # loop continuously to work on the messages
             while True:
