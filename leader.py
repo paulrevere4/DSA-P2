@@ -15,27 +15,6 @@ import errno
 
 from serializer import Serializer
 
-<<<<<<< HEAD
-# ==============================================================================
-# Creates a connection with every other server
-#
-def setup_connections(server_locations):
-    # Map of server nums to the socket for that server
-    sockets = {}
-
-    # Open connections to all servers
-    for key, location in server_locations.items():
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print "LEADER: CONNECTING TO %s, %i" % (location[0], location[2])
-        s.connect((location[0], location[2])) # Connects to Leader listener for all servers
-        sockets[key] = s
-    return sockets
-
-# ==============================================================================
-# Start of 2PC process for committing a transaction
-#
-=======
->>>>>>> Elections
 def distribute_message(self, message):
     if message[0] == 'transaction_request':
         message[0] = 'transaction_commit'
