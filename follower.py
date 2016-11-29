@@ -156,7 +156,7 @@ def run_follower(self, prints = True):
 
                 # Handle outputs
                 for s in writable:
-                    if not self.follower_message_queue.empty():
+                    if s == leader and not self.follower_message_queue.empty():
                         next_msg = self.follower_message_queue.get()
                         print "FOLLOWER: About to send message to leader: '%s'" % str(next_msg)
                         time.sleep(.1)
