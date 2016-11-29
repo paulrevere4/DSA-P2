@@ -64,19 +64,19 @@ def run_follower(self, prints = True):
                         outputs.append(connection)
                         if leader == None:
                             leader = connection
-                    elif s is leader:
+                    else: 
                         data = s.recv(1024)
-                        if data:
-                            print "FOLLOWER: Receiving message from leader"
-                            # A readable client socket has data
-                            deserialize = Serializer.deserialize(data)
-                            print >>sys.stderr, 'FOLLOWER: Received "%s" from %s' % (str(deserialize), s.getpeername())
-                    else:
-                        data = s.recv(1024)
-                        if data:
-                            print "FOLLOWER: Receiving message from unknown source"
-                            # A readable client socket has data
-                            print >>sys.stderr, 'FOLLOWER: Received "%s" from %s' % (data, s.getpeername())
+                        if data == 0:
+                            print("FOLLOWER: Lost connection to Leader")
+                            inputs.remove(s)
+                            outputs.remove(s)
+                        elif data:
+                            if s is leader:
+                                print "FOLLOWER: Receiving message from leader"
+                                # A readable client socket has data
+                                deserialize = Serializer.deserialize(data)
+                                print >>sys.stderr, 'FOLLOWER: Received "%s" from %s' % (str(deserialize), s.getpeername())
+
 
                 # Handle outputs
                 for s in writable:

@@ -36,6 +36,12 @@ def distribute_message(self, message):
         for key, location in self.server_locations.items():
             self.leader_message_queue.put((key, message))
 
+def remove_socket(sockets, socket):
+    for key, sock in sockets.items():
+        if sock == socket:
+            del sockets[key]
+    return sockets
+
 # ==============================================================================
 # Listener for lead server
 #
@@ -67,7 +73,10 @@ def run_leader(self):
                     # Received message from other server
                     print "RECEIVED MESSAGE FROM %s:" % str(s.getpeername())
                     data = s.recv(1024)
-                    if data:
+                    if data == "":
+                        print("FOLLOWER: Lost connection to server")
+                        sockets = remove_socket(sockets, s)
+                    else:
                         deserialized = Serializer.deserialize(data)
                         print "MESSAGE: '%s'" %str(deserialized)
                         distribute_message(self, deserialized)
