@@ -30,22 +30,28 @@ def setup_connections(server_locations):
         sockets[key] = s
     return sockets
 
+def distribute_message(self, message):
+    if message[0] == 'transaction_request':
+        message[0] = 'transaction_commit'
+        for key, location in self.server_locations.items():
+            self.leader_message_queue.put((key, message))
+
 # ==============================================================================
 # Listener for lead server
 #
-def run_leader(server):
+def run_leader(self):
 
     while True:
 
         # check if the thread should run, loop over and over again if not
-        if not server.should_run_leader():
+        if not self.should_run_leader():
             time.sleep(.1)
             # print "LEADER THREAD NOT RUNNING"
         else:
             time.sleep(.1)
             print "LEADER THREAD RUNNING"
 
-            sockets = setup_connections(server.server_locations)
+            sockets = setup_connections(self.server_locations)
 
             # test data, Map of messages to send to sockets, key = socket, val = message to send
             # TODO remove
@@ -64,20 +70,22 @@ def run_leader(server):
                     if data:
                         deserialized = Serializer.deserialize(data)
                         print "MESSAGE: '%s'" %str(deserialized)
+                        distribute_message(self, deserialized)
                     # TODO handle message
 
                 writable_set = set(writable)
-                while not server.leader_message_queue.empty():
-                    recipient, message = server.leader_message_queue.get()
+                while not self.leader_message_queue.empty():
+                    recipient, message = self.leader_message_queue.get()
                     # messages_to_send[sockets[recipient]] = message
                     recipient_socket = sockets[recipient]
                     if recipient_socket in writable_set:
                         time.sleep(.1)
-                        recipient_socket.send(message)
+                        serialized = Serializer.serialize(message)
+                        recipient_socket.send(serialized)
                         print "LEADER: SENT MESSAGE '%s' TO %s" % (message, str(recipient_socket.getpeername()))
                         # del messages_to_send[s][0]
                     else:
-                        print "LEADER: ERROR: COULDN'T SEND MESSAGE TO SERVER", recipient_socket.getpeername()
+                        print "LEADER: ERROR: COULDN'T SEND MESSAGE TO server", recipient_socket.getpeername()
 
                 # messages_to_send = {}
                 # for s in writable:
@@ -90,7 +98,7 @@ def run_leader(server):
                 for s in exceptional:
                     print 'CONNECTION LOST FROM %s' % s.getpeername()
 
-                if not server.should_run_leader():
+                if not self.should_run_leader():
                     print "LEADER DONE"
                     break
 

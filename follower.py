@@ -44,6 +44,7 @@ def run_follower(self, prints = True):
 
             inputs = [server]
             outputs = []
+            leader = None
 
             message_queues = {}
 
@@ -61,18 +62,21 @@ def run_follower(self, prints = True):
                         connection.setblocking(0)
                         inputs.append(connection)
                         outputs.append(connection)
-                    else:
-                        print "waiting for data"
+                        if leader == None:
+                            leader = connection
+                    elif s is leader:
                         data = s.recv(1024)
-                        print "data received"
                         if data:
+                            print "FOLLOWER: Receiving message from leader"
                             # A readable client socket has data
-                            if prints:
-                                print >>sys.stderr, 'FOLLOWER: Received "%s" from %s' % (data, s.getpeername())
-                            message_queues[s].put("Successfuly completed task: %s" % data)
-                            # Add output channel for response
-                            if s not in outputs:
-                                outputs.append(s)
+                            deserialize = Serializer.deserialize(data)
+                            print >>sys.stderr, 'FOLLOWER: Received "%s" from %s' % (str(deserialize), s.getpeername())
+                    else:
+                        data = s.recv(1024)
+                        if data:
+                            print "FOLLOWER: Receiving message from unknown source"
+                            # A readable client socket has data
+                            print >>sys.stderr, 'FOLLOWER: Received "%s" from %s' % (data, s.getpeername())
 
                 # Handle outputs
                 for s in writable:
