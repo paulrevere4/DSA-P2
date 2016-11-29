@@ -56,6 +56,10 @@ class Server(object):
         # queue of messages for the leader to send (recipient, message)
         self.leader_message_queue = Queue.Queue()
 
+        # Tracking of epoch and counter values
+        self.epoch = 0
+        self.counter = 0
+
         # Temporary declaration of leader
         self.is_leader = (server_num == 0) # TODO remove hard coded leader when we can define/elect one
 
@@ -168,7 +172,7 @@ class Server(object):
                 print "MAIN_WORKER: READING FILE '%s':" %fname
                 print self.file_system[fname]
         else:
-            msg = ["transaction_request", cmd]
+            msg = ["transaction_request", cmd, "", ""]
             self.follower_message_queue.put((5, msg))
 
     # ==========================================================================
@@ -176,7 +180,8 @@ class Server(object):
     # here to have the changes propogated to the file system
     #
     def commit_changes(self, message):
-        split_cmd = message.split()
+        print "SERVER: Committing changes (%s,%s): %s" % (message[2], message[3], message[1])
+        split_cmd = message[1].split()
         file = split_cmd[1]
         if split_cmd[0] == "create":
             if not file in self.file_system:
