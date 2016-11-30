@@ -15,17 +15,41 @@ import errno
 
 from serializer import Serializer
 
-def distribute_message(self, message):
+def handle_message(self, message):
     if message[0] == 'transaction_request':
-        message[0] = 'transaction_commit'
+        # message[0] = 'transaction_commit'
+        # message[2] = str(self.epoch)
+        # message[3] = str(self.counter)
+        # self.counter+=1
+
+        # for key, location in self.server_locations.items():
+        #     self.leader_message_queue.put((key, message))
+        message[0] = 'transaction_proposal'
         message[2] = str(self.epoch)
         message[3] = str(self.counter)
 
+        # now we have message = ['transaction_proposal', command, epoch, counter, originator]
         for key, location in self.server_locations.items():
             self.leader_message_queue.put((key, message))
 
-    elif message[0] == 'transaction_proposal':
-        self.record_transaction(message)
+        self.ack_counts[message[1]] = 0
+
+    # TODO
+    elif message[0] == 'transaction_acknowledge':
+        # -1 indicates the message was sent
+        if self.ack_counts[message[1]] != -1:
+            self.ack_counts[message[1]] += 1
+            if self.ack_counts[message[1]] > len(self.server_locations.keys())/2:
+                "LEADER: ENOUGH ACKS FOR MESSAGE '%s', COMMITTING" %str(message)
+                self.ack_counts[message[1]] = -1
+                message[0] = 'transaction_commit'
+                message[2] = str(self.epoch)
+                message[3] = str(self.counter)
+                for key, location in self.server_locations.items():
+                    self.leader_message_queue.put((key, message))
+
+                # self.record_transaction(message)
+
 
 # ==============================================================================
 # Removes a socket from sockets
@@ -40,11 +64,14 @@ def remove_socket(sockets, socket):
 # Sends the leader's entire history so the followers will be synced with it
 #
 def send_entire_history(self):
+    print "LEADER: SENDING ENTIRE HISTORY TO FOLLOWERS"
     for t in self.transaction_history:
         # pretend its a transaction request and distribute the message using distribute_message
         cmd = t.value
-        msg = ["transaction_request", cmd, "-1", "-1", "-1"]
-        distribute_message(self, msg)
+        print "LEADER: TRANSACTION TO SEND: '%s'" %cmd
+        msg = ["transaction_commit", cmd, "-1", "-1", "-1"]
+        for key, location in self.server_locations.items():
+            self.leader_message_queue.put((key, msg))
     self.transaction_history = []
     self.file_system = {}
 
@@ -80,11 +107,12 @@ def run_leader(self):
                     if data == "":
                         print("LEADER: Lost connection to server")
                         sockets = remove_socket(sockets, s)
+                        sockets_list.remove(s)
                     else:
                         print "LEADER: RECEIVED MESSAGE FROM %s:" % str(s.getpeername())
                         deserialized = Serializer.deserialize(data)
                         print "    MESSAGE: '%s'" %str(deserialized)
-                        distribute_message(self, deserialized)
+                        handle_message(self, deserialized)
                     # TODO handle message
 
                 writable_set = set(writable)

@@ -78,6 +78,9 @@ class Server(object):
         # Filename for the transaction history on disk
         self.transaction_history_fname = "server_%d.history" %self.server_num
 
+        # 2PC acknowledgement count. {command-str : ack-count}, ack-count == -1 means the message was committed
+        self.ack_counts = {}
+
     # ==========================================================================
     #
     def should_run_leader(self):
@@ -197,7 +200,7 @@ class Server(object):
         orignator = int(message[4])
         self.record_transaction(trans)
         resp = "    SERVER: " + self.commit_transaction_to_fs(trans) + "\n"
-        if orignator == self.server_num:
+        if orignator == self.server_num and message[0] != "transaction_proposal":
             self.server_response_queue.put(resp)
 
     # ==========================================================================
