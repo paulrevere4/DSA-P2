@@ -40,6 +40,7 @@ def handle_message(self, message):
         if self.ack_counts[message[1]] != -1:
             self.ack_counts[message[1]] += 1
             if self.ack_counts[message[1]] > len(self.server_locations.keys())/2:
+                "LEADER: ENOUGH ACKS FOR MESSAGE '%s', COMMITTING" %str(message)
                 self.ack_counts[message[1]] = -1
                 message[0] = 'transaction_commit'
                 message[2] = str(self.epoch)
@@ -110,8 +111,10 @@ def run_leader(self):
                     else:
                         print "LEADER: RECEIVED MESSAGE FROM %s:" % str(s.getpeername())
                         deserialized = Serializer.deserialize(data)
-                        print "    MESSAGE: '%s'" %str(deserialized)
-                        handle_message(self, deserialized)
+                        for i in range(len(deserialized))[::5]:
+                            chunk = deserialized[i:i+5]
+                            print "    MESSAGE: '%s'" %str(chunk)
+                            handle_message(self, chunk)
                     # TODO handle message
 
                 writable_set = set(writable)
