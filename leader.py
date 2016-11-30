@@ -27,7 +27,6 @@ def handle_message(self, message):
         message[0] = 'transaction_proposal'
         message[2] = str(self.epoch)
         message[3] = str(self.counter)
-        self.counter+=1
 
         # now we have message = ['transaction_proposal', command, epoch, counter, originator]
         for key, location in self.server_locations.items():
@@ -69,6 +68,8 @@ def send_entire_history(self):
         cmd = t.value
         msg = ["transaction_request", cmd, "-1", "-1", "-1"]
         handle_message(self, msg)
+    self.transaction_history = []
+    self.file_system = {}
 
 # ==============================================================================
 # Listener for lead server
