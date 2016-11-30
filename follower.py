@@ -80,7 +80,9 @@ def run_follower(self, prints = True):
                             print "FOLLOWER: Connected to new leader"
                             leader = connection
                         inputs.append(connection)
-                        outputs.append(connection)
+                        if not start_election: 
+                            print "Adding output %s" % str(client_address)
+                            outputs.append(connection)
                     else:
                         try:
                             data = s.recv(1024)
@@ -112,6 +114,7 @@ def run_follower(self, prints = True):
                                     # Hold election
                                     if leader in inputs: inputs.remove(leader)
                                     if leader in outputs: outputs.remove(leader)
+                                    self.is_leader = False
                                     self.stop_leader()
                                     leader = None
                                     self.holding_election = True
@@ -127,6 +130,12 @@ def run_follower(self, prints = True):
                                     print "FOLLOWER: Server %s replying to election request from %s: \n   %s" % (str(self.server_num), deserialize[1], str(reply))
                                     serialized = Serializer.serialize(reply)
                                     s.send(serialized)
+                                    if reply[0] == 'higher_id':
+                                        print "Starting election"
+                                        start_election = True
+                                        sent_election = []
+                                        outputs = self.setup_connections(self.server_locations).values()
+                                        readable, writable, exceptional = select.select(inputs, outputs, inputs)
                                 elif deserialize[0] == 'coordinator':
                                     # New leader has come online,
                                     print "FOLLOWER: New leader is %s" % deserialize[1]
@@ -138,6 +147,7 @@ def run_follower(self, prints = True):
                                     # Reply to election, probably
                                     election_replies.append(deserialize)
                                     if len(election_replies) == len(sent_election):
+                                        start_election = False
                                         print "All results received! Results:"
                                         higher_ids = []
                                         for reply in election_replies:
@@ -162,8 +172,8 @@ def run_follower(self, prints = True):
                         time.sleep(.1)
                         serialized = Serializer.serialize(next_msg[1])
                         s.send(serialized)
-                    if start_election and s not in sent_election:
-                        print "Sending election message"
+                    elif start_election and s not in sent_election:
+                        print "Sending election message to server at %s" % str(s.getpeername())
                         message = ['election', str(self.server_num), str(self.epoch), str(self.counter)]
                         serialized = Serializer.serialize(message)
                         if s in outputs: outputs.remove(s)
