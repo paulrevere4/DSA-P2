@@ -67,7 +67,7 @@ def run_leader(self):
             sockets = self.setup_connections(self.server_locations)
 
             # on startup of leader write the history to all of the followers
-            send_entire_history(self)
+            # send_entire_history(self)
 
             # loop continuously to work on the messages
             while True:
