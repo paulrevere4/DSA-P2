@@ -90,15 +90,17 @@ def run_follower(self, prints = True):
                             data = None
                         if data == "":
                             if s == leader:
-                                print("FOLLOWER: Unable to connect to leader")
+                                print("FOLLOWER: Unable to connect to leader")                            
+                                inputs.remove(s)
+                                if s in outputs: outputs.remove(s)
+                                server.listen(5)
+                                s.close()
+                                leader = None
                             else:
-                                print("FOLLOWER: Unable to connect to server %s") % str(s.getpeername())
+                                print("FOLLOWER: Unable to connect to server %s") % str(s.getpeername())                            
+                                inputs.remove(s)
+                                if s in outputs: outputs.remove(s)
 
-                            inputs.remove(s)
-                            if s in outputs: outputs.remove(s)
-                            server.listen(5)
-                            s.close()
-                            leader = None
                         elif data:
                             deserialize = Serializer.deserialize(data)
                             if s is leader:

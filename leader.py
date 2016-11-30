@@ -80,6 +80,7 @@ def run_leader(self):
                     if data == "":
                         print("LEADER: Lost connection to server")
                         sockets = remove_socket(sockets, s)
+                        sockets_list.remove(s)
                     else:
                         print "LEADER: RECEIVED MESSAGE FROM %s:" % str(s.getpeername())
                         deserialized = Serializer.deserialize(data)
