@@ -80,7 +80,7 @@ def run_follower(self, prints = True):
                             print "FOLLOWER: Connected to new leader"
                             leader = connection
                         inputs.append(connection)
-                        if not start_election: 
+                        if not self.holding_election: 
                             print "Adding output %s" % str(client_address)
                             outputs.append(connection)
                     else:
@@ -90,18 +90,29 @@ def run_follower(self, prints = True):
                             data = None
                         if data == "":
                             if s == leader:
-                                print("FOLLOWER: Unable to connect to leader")
+                                print("FOLLOWER: Unable to connect to leader")                            
+                                inputs.remove(s)
+                                if s in outputs: outputs.remove(s)
+                                print "Starting election"
+                                self.holding_election = True
+                                start_election = True
+                                sent_election = []
+                                outputs = self.setup_connections(self.server_locations).values()
+                                readable, writable, exceptional = select.select(inputs, outputs, inputs)
                             else:
-                                print("FOLLOWER: Unable to connect to server %s") % str(s.getpeername())
+                                print("FOLLOWER: Unable to connect to server %s") % str(s.getpeername())                            
+                                inputs.remove(s)
+                                if s in outputs: outputs.remove(s)
 
-                            inputs.remove(s)
-                            if s in outputs: outputs.remove(s)
-                            server.listen(5)
-                            s.close()
-                            leader = None
                         elif data:
                             deserialize = Serializer.deserialize(data)
                             if s is leader:
+                                if deserialize[0] == 'election':
+                                    print "Election catch, sent from %s" % str(deserialize[1])
+                                    # 'leader' isn't actually the leader, this is for catching that edge case
+                                    inputs.remove(leader)
+                                    leader == None
+                                    continue
                                 print "FOLLOWER: Receiving message from leader"
                                 # A readable client socket has data
                                 print >>sys.stderr, 'FOLLOWER: Received "%s" from %s' % (str(deserialize), s.getpeername())
@@ -149,6 +160,7 @@ def run_follower(self, prints = True):
                                     self.transaction_history = []
                                     self.file_system = {}
                                     self.holding_election = False
+                                    start_election = False
                                     election_replies = []
                                     self.epoch +=1
                                 else:
@@ -164,14 +176,14 @@ def run_follower(self, prints = True):
                                             print "    %s" % str(reply)
                                         if len(higher_ids) == 0:
                                             print "This server is the new leader"
+                                            reply = Serializer.serialize(['coordinator', str(self.server_num)])
+                                            for s in sent_election:
+                                                s.send(reply)
                                             self.epoch +=1
                                             self.is_leader = True
                                             self.holding_election = False
                                             start_election = False
-                                            self.start_leader()
-                                            for s in sent_election:
-                                                reply = Serializer.serialize(['coordinator', str(self.server_num)])
-                                                s.send(reply)
+                                            self.start_leader()                                         
 
                 # Handle outputs
                 for s in writable:
