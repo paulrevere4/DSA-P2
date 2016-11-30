@@ -143,6 +143,7 @@ def run_follower(self, prints = True):
                                     self.file_system = {}
                                     self.holding_election = False
                                     election_replies = []
+                                    self.epoch +=1
                                 else:
                                     # Reply to election, probably
                                     election_replies.append(deserialize)
@@ -156,6 +157,7 @@ def run_follower(self, prints = True):
                                             print "    %s" % str(reply)
                                         if len(higher_ids) == 0:
                                             print "This server is the new leader"
+                                            self.epoch +=1
                                             self.is_leader = True
                                             self.holding_election = False
                                             start_election = False

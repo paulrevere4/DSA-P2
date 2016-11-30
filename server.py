@@ -191,6 +191,7 @@ class Server(object):
     # message = ["transaction_commit", command, epoch, counter]
     #
     def commit_changes(self, message):
+        self.counter += 1
         print "SERVER: COMMITTING CHANGES (%s,%s): %s" % (message[2], message[3], message[1])
         trans = Transaction(message[1:])
         self.record_transaction(trans)
