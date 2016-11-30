@@ -262,6 +262,9 @@ class Server(object):
         for t in self.transaction_history:
             print self.commit_transaction_to_fs(t)
         self.write_transaction_history()
+        last_trans = max(self.transaction_history)
+        self.epoch = last_trans.epoch
+        self.counter = last_trans.counter
 
     # ==========================================================================
     # Returns True if first argument is greater than second argument
