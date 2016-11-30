@@ -103,7 +103,7 @@ def run_follower(self, prints = True):
                             deserialize = Serializer.deserialize(data)
                             if s is leader:
                                 if deserialize[0] == 'election':
-                                    print "Election catch"
+                                    print "Election catch, sent from %s" % str(deserialize[1])
                                     # 'leader' isn't actually the leader, this is for catching that edge case
                                     inputs.remove(leader)
                                     leader == None
@@ -164,13 +164,13 @@ def run_follower(self, prints = True):
                                             print "    %s" % str(reply)
                                         if len(higher_ids) == 0:
                                             print "This server is the new leader"
+                                            reply = Serializer.serialize(['coordinator', str(self.server_num)])
+                                            for s in sent_election:
+                                                s.send(reply)
                                             self.epoch +=1
                                             self.is_leader = True
                                             self.holding_election = False
                                             start_election = False
-                                            reply = Serializer.serialize(['coordinator', str(self.server_num)])
-                                            for s in sent_election:
-                                                s.send(reply)
                                             self.start_leader()                                         
 
                 # Handle outputs
