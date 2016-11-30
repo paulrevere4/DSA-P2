@@ -117,21 +117,18 @@ def run_follower(self, prints = True):
                                 # A readable client socket has data
                                 print >>sys.stderr, 'FOLLOWER: Received "%s" from %s' % (str(deserialize), s.getpeername())
                                 # TODO iterate through in chuncks of 5
-                                for i in range(len(deserialize))[::5]:
-                                    chunk = deserialize[i:i+5]
-                                    print "FOLLOWER: Receiving message from leader"
-                                    # A readable client socket has data
-                                    print >>sys.stderr, 'FOLLOWER: Operating on chunk: "%s" from %s' % (str(chunk), s.getpeername())
-                                    if chunk[0] == 'transaction_commit':
-                                        print "FOLLOWER: Committing transaction %s" % chunk[1]
-                                        self.commit_changes(chunk)
-                                    if chunk[0] == 'transaction_proposal':
-                                        transaction_prop_msg = chunk[:]
-                                        # transaction_prop_msg[1] = "propose " + transaction_prop_msg[1]
-                                        # self.commit_changes(transaction_prop_msg)
-                                        print "FOLLOWER: Acknowledging transaction %s" % chunk[1]
-                                        chunk[0] = 'transaction_acknowledge'
-                                        self.follower_message_queue.put((2,chunk))
+                                print "FOLLOWER: Receiving message from leader"
+                                # A readable client socket has data
+                                if deserialize[0] == 'transaction_commit':
+                                    print "FOLLOWER: Committing transaction %s" % deserialize[1]
+                                    self.commit_changes(deserialize)
+                                if deserialize[0] == 'transaction_proposal':
+                                    transaction_prop_msg = deserialize[:]
+                                    # transaction_prop_msg[1] = "propose " + transaction_prop_msg[1]
+                                    # self.commit_changes(transaction_prop_msg)
+                                    print "FOLLOWER: Acknowledging transaction %s" % deserialize[1]
+                                    deserialize[0] = 'transaction_acknowledge'
+                                    self.follower_message_queue.put((2,deserialize))
                             else:
                                 # Message is from another server, likely an election
                                 if deserialize[0] == 'election':

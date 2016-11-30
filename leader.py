@@ -111,10 +111,8 @@ def run_leader(self):
                     else:
                         print "LEADER: RECEIVED MESSAGE FROM %s:" % str(s.getpeername())
                         deserialized = Serializer.deserialize(data)
-                        for i in range(len(deserialized))[::5]:
-                            chunk = deserialized[i:i+5]
-                            print "    MESSAGE: '%s'" %str(chunk)
-                            handle_message(self, chunk)
+                        print "    MESSAGE: '%s'" %str(deserialized)
+                        handle_message(self, deserialized)
                     # TODO handle message
 
                 writable_set = set(writable)
