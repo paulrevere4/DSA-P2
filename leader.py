@@ -45,6 +45,8 @@ def send_entire_history(self):
         cmd = t.value
         msg = ["transaction_request", cmd, "-1", "-1", "-1"]
         distribute_message(self, msg)
+    self.transaction_history = []
+    self.file_system = {}
 
 # ==============================================================================
 # Listener for lead server
