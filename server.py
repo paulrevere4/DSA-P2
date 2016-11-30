@@ -302,12 +302,12 @@ class Server(object):
             if not self.is_leader and key == self.server_num:
                 continue 
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print "LEADER: CONNECTING TO %s:%i" % (location[0], location[2])
+            print "    CONNECTING TO %s:%i" % (location[0], location[2])
             try: 
                 s.connect((location[0], location[2])) # Connects to Leader listener for all servers
                 sockets[key] = s
             except:
-                print "Couldn't connect to %s:%i" % (location[0], location[2])
+                print "    Couldn't connect to %s:%i" % (location[0], location[2])
         return sockets
 
 # ==============================================================================
