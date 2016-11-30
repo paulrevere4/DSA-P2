@@ -63,11 +63,14 @@ def remove_socket(sockets, socket):
 # Sends the leader's entire history so the followers will be synced with it
 #
 def send_entire_history(self):
+    print "LEADER: SENDING ENTIRE HISTORY TO FOLLOWERS"
     for t in self.transaction_history:
         # pretend its a transaction request and distribute the message using distribute_message
         cmd = t.value
-        msg = ["transaction_request", cmd, "-1", "-1", "-1"]
-        handle_message(self, msg)
+        print "LEADER: TRANSACTION TO SEND: '%s'" %cmd
+        msg = ["transaction_commit", cmd, "-1", "-1", "-1"]
+        for key, location in self.server_locations.items():
+            self.leader_message_queue.put((key, msg))
     self.transaction_history = []
     self.file_system = {}
 
