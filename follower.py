@@ -102,6 +102,13 @@ def run_follower(self, prints = True):
                                 if deserialize[0] == 'transaction_commit':
                                     print "FOLLOWER: Committing transaction %s" % deserialize[1]
                                     self.commit_changes(deserialize)
+                                if deserialize[0] == 'transaction_proposal':
+                                    transaction_prop_msg = deserialize[:]
+                                    transaction_prop_msg[1] = "propose " + transaction_prop_msg[1]
+                                    self.commit_changes(transaction_prop_msg)
+                                    print "FOLLOWER: Acknowledging transaction %s" % deserialize[1]
+                                    deserialize[0] = 'transaction_acknowledge'
+                                    self.follower_message_queue.put((2,deserialize))
                             else:
                                 # Message is from another server, likely an election
                                 if deserialize[0] == 'election':
