@@ -191,6 +191,7 @@ class Server(object):
     # message = ["transaction_commit", command, epoch, counter, originator-num]
     #
     def commit_changes(self, message):
+        self.counter += 1
         print "SERVER: COMMITTING CHANGES (%s,%s): %s" % (message[2], message[3], message[1])
         trans = Transaction(message[1:-1])
         orignator = int(message[4])
@@ -263,6 +264,9 @@ class Server(object):
         for t in self.transaction_history:
             print self.commit_transaction_to_fs(t)
         self.write_transaction_history()
+        last_trans = max(self.transaction_history)
+        self.epoch = last_trans.epoch
+        self.counter = last_trans.counter
 
     # ==========================================================================
     # Returns True if first argument is greater than second argument
@@ -304,12 +308,12 @@ class Server(object):
             if not self.is_leader and key == self.server_num:
                 continue 
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print "LEADER: CONNECTING TO %s:%i" % (location[0], location[2])
+            print "    CONNECTING TO %s:%i" % (location[0], location[2])
             try: 
                 s.connect((location[0], location[2])) # Connects to Leader listener for all servers
                 sockets[key] = s
             except:
-                print "Couldn't connect to %s:%i" % (location[0], location[2])
+                print "    Couldn't connect to %s:%i" % (location[0], location[2])
         return sockets
 
 # ==============================================================================

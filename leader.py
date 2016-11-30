@@ -20,7 +20,6 @@ def distribute_message(self, message):
         message[0] = 'transaction_commit'
         message[2] = str(self.epoch)
         message[3] = str(self.counter)
-        self.counter+=1
 
         for key, location in self.server_locations.items():
             self.leader_message_queue.put((key, message))
