@@ -93,9 +93,12 @@ def run_follower(self, prints = True):
                                 print("FOLLOWER: Unable to connect to leader")                            
                                 inputs.remove(s)
                                 if s in outputs: outputs.remove(s)
-                                server.listen(5)
-                                s.close()
-                                leader = None
+                                print "Starting election"
+                                self.holding_election = True
+                                start_election = True
+                                sent_election = []
+                                outputs = self.setup_connections(self.server_locations).values()
+                                readable, writable, exceptional = select.select(inputs, outputs, inputs)
                             else:
                                 print("FOLLOWER: Unable to connect to server %s") % str(s.getpeername())                            
                                 inputs.remove(s)
