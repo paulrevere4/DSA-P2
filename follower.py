@@ -21,7 +21,7 @@ from serializer import Serializer
 def run_follower(self, prints = True):
 
     task_queue = self.task_queue
-    host = self.host
+    host = '0.0.0.0'
     port = self.leader_listen_port
     run_follower_thread = self.run_follower_thread
 
