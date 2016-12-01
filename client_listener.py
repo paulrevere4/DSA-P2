@@ -18,7 +18,7 @@ from serializer import Serializer
 #
 def run_client_listener(self):
     s = socket.socket()                             # Create a socket object
-    s.bind((self.host, self.cli_listen_port))       # Bind to the port
+    s.bind(('0.0.0.0', self.cli_listen_port))       # Bind to the port
     s.listen(5)                                     # Now wait for client connection.
     print "CLIENT_LISTENER: LISTENING ON host=%s port=%d" %(self.host, self.cli_listen_port)
     while True:
