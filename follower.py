@@ -124,8 +124,8 @@ def run_follower(self, prints = True):
                                     self.commit_changes(deserialize)
                                 if deserialize[0] == 'transaction_proposal':
                                     transaction_prop_msg = deserialize[:]
-                                    # transaction_prop_msg[1] = "propose " + transaction_prop_msg[1]
-                                    # self.commit_changes(transaction_prop_msg)
+                                    transaction_prop_msg[1] = "propose " + transaction_prop_msg[1]
+                                    self.commit_changes(transaction_prop_msg)
                                     print "FOLLOWER: Acknowledging transaction %s" % deserialize[1]
                                     deserialize[0] = 'transaction_acknowledge'
                                     self.follower_message_queue.put((2,deserialize))
@@ -151,7 +151,7 @@ def run_follower(self, prints = True):
                                     print "FOLLOWER: Server %s replying to election request from %s: \n   %s" % (str(self.server_num), deserialize[1], str(reply))
                                     serialized = Serializer.serialize(reply)
                                     s.send(serialized)
-                                    if reply[0] == 'higher_id':
+                                    if reply[0] == 'higher_id' and self.server_num % 2 == 1:
                                         print "Starting election"
                                         start_election = True
                                         sent_election = []

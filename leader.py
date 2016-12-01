@@ -68,8 +68,10 @@ def send_entire_history(self):
     for t in self.transaction_history:
         # pretend its a transaction request and distribute the message using distribute_message
         cmd = t.value
+        epoch = t.epoch
+        counter = t.counter
         print "LEADER: TRANSACTION TO SEND: '%s'" %cmd
-        msg = ["transaction_commit", cmd, "-1", "-1", "-1"]
+        msg = ["transaction_commit", cmd, str(epoch), str(counter), "-1"]
         for key, location in self.server_locations.items():
             self.leader_message_queue.put((key, msg))
     self.transaction_history = []
@@ -94,7 +96,7 @@ def run_leader(self):
             sockets = self.setup_connections(self.server_locations)
 
             # on startup of leader write the history to all of the followers
-            # send_entire_history(self)
+            send_entire_history(self)
 
             # loop continuously to work on the messages
             while True:
